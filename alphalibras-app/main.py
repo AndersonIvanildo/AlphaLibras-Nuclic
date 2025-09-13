@@ -25,18 +25,14 @@ while True:
         print("Erro ao capturar imagem da câmera.")
         break
 
-    # 2. Preparação da Imagem
+    # Preparação da Imagem
     frame = cv2.flip(frame, 1)
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-    # 3. Processamento ÚNICO por frame
+    # Processamento por frame
     results = hands_detector.process(frame_rgb)
 
-    # ==============================================================================
-    # USO DA NOVA FUNÇÃO NO CONTEXTO DE PRODUÇÃO
-    # ==============================================================================
-
-    # 4. Geração das Imagens de Saída
+    # Geração das Imagens de Saída
     
     # Imagem 1: O frame original
     frame_original = frame.copy()
