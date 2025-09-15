@@ -1,7 +1,10 @@
-from utils.hand_preprocess import extrair_landmarks, desenhar_esqueleto_mao, desenhar_esqueleto_na_imagem
 import cv2
 import numpy as np
 import mediapipe as mp
+from pathlib import Path
+
+from utils.hand_preprocess import extrair_landmarks, desenhar_esqueleto_na_imagem, desenhar_esqueleto_mao
+from core.model_inference import SignClassifier
 
 mp_hands = mp.solutions.hands
 hands_detector = mp_hands.Hands(
@@ -11,12 +14,13 @@ hands_detector = mp_hands.Hands(
     min_tracking_confidence=0.5
 )
 
-# Inicia a captura de vídeo
+MODEL_PATH = Path.cwd() / "models" / "modelo_completo.keras"
+CLASSES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'I', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'Y']
+
+classifier = SignClassifier(model_path=MODEL_PATH, class_names=CLASSES, confidence_threshold=0.80)
+
 cap = cv2.VideoCapture(0)
-
-# Define a altura padrão para todas as imagens na visualização final
 IMG_HEIGHT = 480
-
 print("Iniciando a câmera... Pressione 'q' para sair.")
 
 while True:
@@ -28,26 +32,20 @@ while True:
     # Preparação da Imagem
     frame = cv2.flip(frame, 1)
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-    # Processamento por frame
     results = hands_detector.process(frame_rgb)
 
-    # Geração das Imagens de Saída
-    
-    # Imagem 1: O frame original
-    frame_original = frame.copy()
-
-    # Imagem 2: Frame com o esqueleto desenhado em cima
-    frame_com_esqueleto = desenhar_esqueleto_na_imagem(frame, results)
-
-    # Imagem 3: Esqueleto em fundo preto
+    # Extrai os landmarks normalizados
     hand_data = extrair_landmarks(entrada=results)
     
+    letra_prevista, confianca = classifier.predict(hand_data)
+    
+    if letra_prevista is not None:
+        print(f"Letra Prevista: {letra_prevista} | Confiança: {confianca:.2f}")
+
+    frame_original = frame.copy()
+    frame_com_esqueleto = desenhar_esqueleto_na_imagem(frame, results)
     esqueleto_pb = desenhar_esqueleto_mao(hand_data, size=IMG_HEIGHT)
-
-    # ==============================================================================
-
-    # Redimensionamento e Junção
+    
     h, w, _ = frame_original.shape
     scale = IMG_HEIGHT / h
     new_w = int(w * scale)
@@ -55,11 +53,10 @@ while True:
     resized_original = cv2.resize(frame_original, (new_w, IMG_HEIGHT))
     resized_com_esqueleto = cv2.resize(frame_com_esqueleto, (new_w, IMG_HEIGHT))
 
-    # Junta as três imagens horizontalmente
     final_image = np.concatenate((resized_original, resized_com_esqueleto, esqueleto_pb), axis=1)
 
-    # Exibição
-    cv2.imshow('Visualizacao em Tempo Real (Original | Com Esqueleto | Apenas Esqueleto)', final_image)
+    cv2.imshow('Visualizacao em Tempo Real', final_image)
+
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
