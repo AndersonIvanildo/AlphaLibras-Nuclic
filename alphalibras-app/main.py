@@ -14,9 +14,6 @@ hands_detector = mp_hands.Hands(
     min_tracking_confidence=0.5
 )
 
-# --- A ÚNICA MUDANÇA NECESSÁRIA ESTÁ AQUI ---
-# Apontar para o modelo .tflite que você salvou.
-# O nome do arquivo foi retirado do seu notebook.
 MODEL_PATH = Path.cwd() / "models" / "modelo_libras.tflite"
 # ---------------------------------------------
 
@@ -43,15 +40,12 @@ while True:
     # Extrai os landmarks normalizados
     hand_data = extrair_landmarks(entrada=results)
     
-    # Faz a predição usando a classe já atualizada
     letra_prevista, confianca = classifier.predict(hand_data)
     
     if letra_prevista is not None:
-        # Coloca o texto da predição diretamente no frame para melhor visualização
         texto_display = f"Letra: {letra_prevista} ({confianca:.0%})"
         cv2.putText(frame, texto_display, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
-    # O código para desenhar e exibir as imagens permanece o mesmo
     frame_com_esqueleto = desenhar_esqueleto_na_imagem(frame, results)
     esqueleto_pb = desenhar_esqueleto_mao(hand_data, size=IMG_HEIGHT)
     
@@ -69,7 +63,6 @@ while True:
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# --- Finalização ---
 print("Encerrando...")
 cap.release()
 cv2.destroyAllWindows()
