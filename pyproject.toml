@@ -12,7 +12,8 @@ dependencies = [
     "mediapipe (>=0.10.21,<0.11.0)",
     "kagglehub (>=0.3.13,<0.4.0)",
     "pandas (>=2.3.2,<3.0.0)",
-    "scikit-learn (>=1.7.2,<2.0.0)"
+    "scikit-learn (>=1.7.2,<2.0.0)",
+    "tflite-runtime-nightly (>=2.20.0.dev20250409,<3.0.0)",
 ]
 
 

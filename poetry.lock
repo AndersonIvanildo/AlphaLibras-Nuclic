@@ -1681,6 +1681,28 @@ CFFI = ">=1.0"
 numpy = ["NumPy"]
 
 [[package]]
+name = "tflite-runtime-nightly"
+version = "2.20.0.dev20250409"
+description = "TensorFlow Lite is for mobile and embedded devices."
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "tflite_runtime_nightly-2.20.0.dev20250409-cp310-cp310-manylinux2014_x86_64.whl", hash = "sha256:e230232526841a944b7dd86f6f9728021e7aba22e525d5b603c95d9d0d122711"},
+    {file = "tflite_runtime_nightly-2.20.0.dev20250409-cp310-cp310-manylinux_2_34_aarch64.whl", hash = "sha256:7307a941bda4cf26acd0445fc7a35c1f3632024e86ca55f325d75b94146cb9d3"},
+    {file = "tflite_runtime_nightly-2.20.0.dev20250409-cp310-cp310-manylinux_2_34_armv7l.whl", hash = "sha256:c6fcda6072752afd6f462fe650c3f866705a2c3ed01c21e525e558bb6f1701a4"},
+    {file = "tflite_runtime_nightly-2.20.0.dev20250409-cp311-cp311-manylinux2014_x86_64.whl", hash = "sha256:bb54d8a5b42c1e201c232ab84c02fc2d3258db52753682a16bbc85ea453c1b26"},
+    {file = "tflite_runtime_nightly-2.20.0.dev20250409-cp311-cp311-manylinux_2_34_aarch64.whl", hash = "sha256:b2a69402589a342fe98de8605e25c9aa5e479cee859c84616b44946bd048f8dc"},
+    {file = "tflite_runtime_nightly-2.20.0.dev20250409-cp311-cp311-manylinux_2_34_armv7l.whl", hash = "sha256:4b340e0c16fe2d371b7d66109b479bd2874d86cef112f9cdd845e49235552388"},
+    {file = "tflite_runtime_nightly-2.20.0.dev20250409-cp39-cp39-manylinux2014_x86_64.whl", hash = "sha256:bc1a005c75e7c449540ebfb0fd389cc1572a7d262c6e770519ce1573b82e6ebc"},
+    {file = "tflite_runtime_nightly-2.20.0.dev20250409-cp39-cp39-manylinux_2_34_aarch64.whl", hash = "sha256:ae5e9be0ac16d1c41aa99b668bf521528fa6164bf92eda52229c916c8d805738"},
+    {file = "tflite_runtime_nightly-2.20.0.dev20250409-cp39-cp39-manylinux_2_34_armv7l.whl", hash = "sha256:c6be56f736f3893c74430c974750934d960e32dbd583dd28087614eb5a4e744e"},
+]
+
+[package.dependencies]
+numpy = ">=1.23.2"
+
+[[package]]
 name = "threadpoolctl"
 version = "3.6.0"
 description = "threadpoolctl"
@@ -1747,4 +1769,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11"
-content-hash = "0b863eeb8ac651ade25c0a1da71cc8b144a9c4acc8e4482abb28d61464b74e10"
+content-hash = "bf5d1a3d6099f918cc1d32ffca714dfbb69d7da9b1b1ed9856912d4a238d4825"
