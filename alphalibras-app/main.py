@@ -5,7 +5,7 @@ from pathlib import Path
 from core.model_inference import SignClassifier
 from utils.hand_preprocess import extrair_landmarks, desenhar_esqueleto_na_imagem, desenhar_esqueleto_mao
 
-# --- Configurações do MediaPipe ---
+# Configurações do MediaPipe
 mp_hands = mp.solutions.hands
 hands_detector = mp_hands.Hands(
     static_image_mode=False,
@@ -17,7 +17,6 @@ hands_detector = mp_hands.Hands(
 MODEL_PATH = Path.cwd() / "models" / "modelo_libras.tflite"
 # ---------------------------------------------
 
-# A lista de classes permanece a mesma
 CLASSES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'I', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'Y']
 
 classifier = SignClassifier(model_path=str(MODEL_PATH), class_names=CLASSES, confidence_threshold=0.80)

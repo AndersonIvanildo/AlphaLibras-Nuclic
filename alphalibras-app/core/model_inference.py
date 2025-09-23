@@ -8,7 +8,7 @@ class SignClassifier:
         """
         print("Carregando o modelo de inferência TFLite...")
         # Carrega o modelo TFLite e aloca os tensores.
-        self.interpreter = tflite.Interpreter(model_path=model_path) # <- MUDANÇA AQUI
+        self.interpreter = tflite.Interpreter(model_path=model_path)
         self.interpreter.allocate_tensors()
 
         # Obtém os detalhes dos tensores de entrada e saída.
