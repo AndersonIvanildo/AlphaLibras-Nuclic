@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Teste da API de Libras</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
+        #container { display: flex; gap: 20px; }
+        #video { border: 2px solid #333; transform: scaleX(-1); }
+        #result { font-size: 2em; font-weight: bold; color: #007BFF; }
+        #status { margin-top: 10px; padding: 10px; border-radius: 5px; }
+        .connected { background-color: #d4edda; color: #155724; }
+        .disconnected { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>Classificador de Libras em Tempo Real</h1>
+    <div id="container">
+        <div>
+            <h2>Sua Câmera</h2>
+            <video id="video" width="400" height="300" autoplay playsinline></video>
+        </div>
+        <div>
+            <h2>Predição</h2>
+            <p id="result">Aguardando...</p>
+        </div>
+    </div>
+    <div id="status" class="disconnected">Status: Desconectado</div>
+    <canvas id="canvas" width="400" height="300" style="display: none;"></canvas>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const resultElement = document.getElementById('result');
+        const statusElement = document.getElementById('status');
+        const wsUrl = "ws://localhost:8000/ws/classify"; // URL do seu servidor
+
+        let ws;
+
+        function connectWebSocket() {
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log("Conectado ao servidor WebSocket!");
+                statusElement.textContent = "Status: Conectado";
+                statusElement.className = 'connected';
+                // Começa a enviar frames da webcam a cada 200ms
+                setInterval(sendFrame, 200);
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.error) {
+                    resultElement.textContent = `Erro: ${data.error}`;
+                } else {
+                    const confidence = (data.confidence * 100).toFixed(2);
+                    resultElement.innerHTML = `Letra: ${data.class} <br> Confiança: ${confidence}%`;
+                }
+            };
+
+            ws.onclose = () => {
+                console.log("Desconectado do servidor WebSocket. Tentando reconectar...");
+                statusElement.textContent = "Status: Desconectado. Tentando reconectar...";
+                statusElement.className = 'disconnected';
+                // Tenta reconectar após 2 segundos
+                setTimeout(connectWebSocket, 2000);
+            };
+
+            ws.onerror = (error) => {
+                console.error("Erro no WebSocket:", error);
+                ws.close();
+            };
+        }
+
+        function sendFrame() {
+            if (ws.readyState === WebSocket.OPEN) {
+                // Desenha o frame atual do vídeo no canvas (invertido horizontalmente)
+                context.save();
+                context.scale(-1, 1);
+                context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+                context.restore();
+
+                // Pega a imagem do canvas como uma string base64 em formato JPEG
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.8); // 0.8 é a qualidade da imagem
+                ws.send(dataUrl);
+            }
+        }
+
+        // Acessa a webcam do usuário
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+                // Inicia a conexão WebSocket após a câmera estar pronta
+                video.onloadedmetadata = () => {
+                    connectWebSocket();
+                };
+            })
+            .catch(err => {
+                console.error("Erro ao acessar a webcam: ", err);
+                alert("Não foi possível acessar sua webcam. Verifique as permissões do navegador.");
+            });
+    </script>
+</body>
+</html>
