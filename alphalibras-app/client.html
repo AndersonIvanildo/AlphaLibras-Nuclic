@@ -2,43 +2,145 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Teste da API de Libras</title>
+    <title>Teste da API AlphaLibras</title>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
-        #container { display: flex; gap: 20px; }
-        #video { border: 2px solid #333; transform: scaleX(-1); }
-        #result { font-size: 2em; font-weight: bold; color: #007BFF; }
-        #status { margin-top: 10px; padding: 10px; border-radius: 5px; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        #container { 
+            display: flex; 
+            gap: 30px; 
+            margin-top: 20px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        video { 
+            border: 2px solid #ccc; 
+            border-radius: 8px;
+            transform: scaleX(-1); /* Espelha o vídeo para o usuário se ver corretamente */
+        }
+        #ui-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 300px;
+        }
+        #start-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        #exercise-area h2 {
+            margin-top: 0;
+        }
+        #prediction-area p {
+            font-size: 2.5em; 
+            font-weight: bold; 
+            color: #007BFF;
+            margin: 10px 0;
+            height: 50px; /* Altura fixa para não "pular" */
+        }
+        #status { 
+            margin-top: 15px; 
+            padding: 8px; 
+            border-radius: 5px; 
+            width: 90%;
+            text-align: center;
+        }
         .connected { background-color: #d4edda; color: #155724; }
         .disconnected { background-color: #f8d7da; color: #721c24; }
+        .connecting { background-color: #fff3cd; color: #856404; }
     </style>
 </head>
 <body>
-    <h1>Classificador de Libras em Tempo Real</h1>
+    <h1>Teste de Exercícios AlphaLibras</h1>
+
     <div id="container">
         <div>
-            <h2>Sua Câmera</h2>
-            <video id="video" width="400" height="300" autoplay playsinline></video>
+            <h3>Sua Câmera</h3>
+            <video id="video" width="400" height="300" autoplay playsinline muted></video>
         </div>
-        <div>
-            <h2>Predição</h2>
-            <p id="result">Aguardando...</p>
+        <div id="ui-panel">
+            <button id="start-button">Iniciar Novo Exercício de Soletração</button>
+
+            <div id="exercise-area">
+                <h2>Exercício:</h2>
+                <p id="instruction">Aguardando início...</p>
+            </div>
+            
+            <div id="prediction-area">
+                <h3>Letra Identificada:</h3>
+                <p id="result">?</p>
+            </div>
+            
+            <div id="status" class="disconnected">Status: Desconectado</div>
         </div>
     </div>
-    <div id="status" class="disconnected">Status: Desconectado</div>
+
     <canvas id="canvas" width="400" height="300" style="display: none;"></canvas>
 
     <script>
+        // Referências aos Elementos do HTML
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const context = canvas.getContext('2d');
         const resultElement = document.getElementById('result');
         const statusElement = document.getElementById('status');
-        const wsUrl = "ws://localhost:8000/ws/classify"; // URL do seu servidor
+        const startButton = document.getElementById('start-button');
+        const instructionElement = document.getElementById('instruction');
 
-        let ws;
+        // URLs da API
+        const exerciseUrl = "http://localhost:8000/api/v1/exercicios/soletracao";
+        const wsUrl = "ws://localhost:8000/api/v1/classify/ws";
 
+        let ws; // Variável para guardar a conexão WebSocket
+        let frameInterval; // Variável para controlar o envio de frames
+
+        // Início do exercício ao clicar no botão
+        startButton.onclick = async function() {
+            try {
+                // Primeiro, é feito uma chamada HTTP para pegar o desafio
+                console.log("Buscando novo exercício...");
+                const response = await fetch(exerciseUrl);
+                const exercise = await response.json();
+
+                // Atualização da interface com a instrução do exercício
+                instructionElement.textContent = `Soletre a palavra: "${exercise.palavra}"`;
+                console.log("Exercício recebido:", exercise.palavra);
+
+                // Com os exercícios carregados, agora é feito a conexão ao WebSocket para começar a classificação
+                connectWebSocket();
+
+            } catch (error) {
+                console.error("Falha ao buscar exercício:", error);
+                instructionElement.textContent = "Erro ao carregar exercício.";
+            }
+        };
+
+        // Conexão ao WebSocket para a classificação em tempo real
         function connectWebSocket() {
+            // Se já existir uma conexão, fecha antes de abrir uma nova
+            if (ws) {
+                ws.close();
+            }
+
+            console.log("Conectando ao servidor WebSocket...");
+            statusElement.textContent = "Status: Conectando...";
+            statusElement.className = 'connecting';
+            
             ws = new WebSocket(wsUrl);
 
             ws.onopen = () => {
@@ -46,55 +148,52 @@
                 statusElement.textContent = "Status: Conectado";
                 statusElement.className = 'connected';
                 // Começa a enviar frames da webcam a cada 200ms
-                setInterval(sendFrame, 200);
+                frameInterval = setInterval(sendFrame, 200);
             };
 
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
-                if (data.error) {
-                    resultElement.textContent = `Erro: ${data.error}`;
+                if (data.letra) {
+                    const confidence = (data.confianca * 100).toFixed(1);
+                    resultElement.textContent = `${data.letra} (${confidence}%)`;
                 } else {
-                    const confidence = (data.confidence * 100).toFixed(2);
-                    resultElement.innerHTML = `Letra: ${data.class} <br> Confiança: ${confidence}%`;
+                    resultElement.textContent = '-';
                 }
             };
 
             ws.onclose = () => {
-                console.log("Desconectado do servidor WebSocket. Tentando reconectar...");
-                statusElement.textContent = "Status: Desconectado. Tentando reconectar...";
+                console.log("Desconectado do servidor WebSocket.");
+                statusElement.textContent = "Status: Desconectado";
                 statusElement.className = 'disconnected';
-                // Tenta reconectar após 2 segundos
-                setTimeout(connectWebSocket, 2000);
+                // Para o envio de frames quando a conexão é fechada
+                clearInterval(frameInterval);
             };
 
             ws.onerror = (error) => {
                 console.error("Erro no WebSocket:", error);
+                statusElement.textContent = "Status: Erro na conexão";
+                statusElement.className = 'disconnected';
                 ws.close();
             };
         }
 
+        // Função para enviar o frame da câmera para o servidor
         function sendFrame() {
-            if (ws.readyState === WebSocket.OPEN) {
-                // Desenha o frame atual do vídeo no canvas (invertido horizontalmente)
-                context.save();
-                context.scale(-1, 1);
-                context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
-                context.restore();
-
-                // Pega a imagem do canvas como uma string base64 em formato JPEG
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.8); // 0.8 é a qualidade da imagem
+            // Verifica se a conexão está aberta antes de tentar enviar
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                // Desenha o frame atual do vídeo no canvas
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // Pega a imagem do canvas como uma string base64
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
                 ws.send(dataUrl);
             }
         }
 
-        // Acessa a webcam do usuário
+        // Acessa a webcam do usuário ao carregar a página
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
                 video.srcObject = stream;
-                // Inicia a conexão WebSocket após a câmera estar pronta
-                video.onloadedmetadata = () => {
-                    connectWebSocket();
-                };
             })
             .catch(err => {
                 console.error("Erro ao acessar a webcam: ", err);
