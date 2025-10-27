@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8" />
+<title>AlphaLibras - MVP Soletração</title>
+<style>
+    :root {
+        --bg: #f0f2f5;
+        --card: #fff;
+        --accent: #007bff;
+        --yellow: #FFD94D;
+        --green: #7CE389;
+        --red: #FF8A8A;
+        --muted: #666;
+    }
+
+    body {
+        font-family: "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+    }
+
+    .app {
+        width: 90%;
+        max-width: 1200px;
+        background: var(--card);
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        padding: 30px;
+        display: flex;
+        justify-content: space-between;
+        gap: 30px;
+    }
+
+    .cam {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    video {
+        border-radius: 12px;
+        border: 3px solid #ddd;
+        width: 640px;
+        height: 480px;
+        transform: scaleX(-1);
+        background: #000;
+    }
+
+    .panel {
+        width: 420px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    button.primary {
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    button.primary:hover {
+        opacity: 0.85;
+        transform: scale(1.03);
+    }
+
+    .exercise {
+        background: #fbfbfb;
+        padding: 16px;
+        border-radius: 10px;
+        border: 1px solid #eee;
+    }
+
+    .instruction {
+        font-size: 16px;
+        color: var(--muted);
+        margin-bottom: 10px;
+    }
+
+    .letters-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .letter-box {
+        width: 58px;
+        height: 68px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        background: var(--yellow);
+        font-weight: 700;
+        font-size: 20px;
+        color: #222;
+        border: 2px solid rgba(0, 0, 0, 0.08);
+        position: relative;
+        transition: all 0.15s ease;
+    }
+
+    .letter-box.active {
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+        transform: translateY(-3px);
+    }
+
+    .letter-box.success {
+        background: var(--green);
+        color: #064;
+    }
+
+    .letter-box.waiting {
+        animation: pulseYellow 1.6s infinite;
+    }
+
+    @keyframes pulseYellow {
+        0% { box-shadow: 0 0 0 0 rgba(255,217,77,0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(255,217,77,0); }
+        100% { box-shadow: 0 0 0 0 rgba(255,217,77,0); }
+    }
+
+    .prediction {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--accent);
+        height: 42px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .status {
+        margin-top: 6px;
+        font-size: 14px;
+        color: var(--muted);
+        text-align: center;
+    }
+
+    .doubt-overlay {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        border: 1px solid #eee;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        display: none;
+        z-index: 999;
+        width: 340px;
+    }
+
+    .doubt-overlay.show { display: block; }
+
+    .hint {
+        font-size: 15px;
+        text-align: center;
+        color: #333;
+    }
+
+    .row {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 15px;
+    }
+
+    #next-word-btn {
+        display: none;
+        background: var(--green);
+        color: #063;
+        padding: 10px;
+        border: none;
+        border-radius: 10px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    #next-word-btn:hover {
+        transform: scale(1.05);
+    }
+</style>
+</head>
+<body>
+<div class="app">
+    <div class="cam">
+        <h2>AlphaLibras</h2>
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="canvas" width="640" height="480" style="display:none"></canvas>
+    </div>
+
+    <div class="panel">
+        <button id="start-button" class="primary">Iniciar Exercício</button>
+        <button id="next-word-btn">Próxima Palavra ▶</button>
+
+        <div class="exercise">
+            <div class="instruction" id="instruction">Clique em "Iniciar Exercício"</div>
+            <div class="letters-row" id="letters-row"></div>
+            <div class="status" id="status">Status: desconectado</div>
+        </div>
+
+        <div>
+            <div style="text-align:center;">Letra identificada:</div>
+            <div class="prediction" id="predicted-letter">-</div>
+        </div>
+    </div>
+
+    <div id="doubt" class="doubt-overlay">
+        <div class="hint">Parece que está com dificuldade. Deseja ver uma dica?</div>
+        <div class="row">
+            <button id="doubt-yes" class="primary">Sim</button>
+            <button id="doubt-no">Não</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const wsUrl = "ws://localhost:8000/api/v1/classify/ws";
+
+// ======== Palavras estáticas (letras estáticas em Libras) ========
+const staticWords = [
+    "CASA", "PATO", "GATO", "LUA", "MESA",
+    "SAPO", "PEIXE", "BOLA", "DADO", "VIDA",
+    "FADA", "COPO", "MALA", "TETO", "PORTA"
+];
+
+let wordIndex = 0; // controla a palavra atual
+let currentWord = staticWords[wordIndex];
+let letters = [];
+let currentIndex = 0;
+let isLetterSolved = false;
+let letterTimeout = null;
+let ws = null;
+let frameInterval = null;
+
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const instructionEl = document.getElementById("instruction");
+const lettersRow = document.getElementById("letters-row");
+const predictedLetterEl = document.getElementById("predicted-letter");
+const startButton = document.getElementById("start-button");
+const nextWordBtn = document.getElementById("next-word-btn");
+const doubtOverlay = document.getElementById("doubt");
+const doubtYesBtn = document.getElementById("doubt-yes");
+const doubtNoBtn = document.getElementById("doubt-no");
+const statusEl = document.getElementById("status");
+
+async function startCamera() {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = stream;
+    await video.play();
+}
+
+function renderLetters(word) {
+    lettersRow.innerHTML = "";
+    letters = Array.from(word);
+    letters.forEach((l, i) => {
+        const box = document.createElement("div");
+        box.className = "letter-box";
+        box.dataset.index = i;
+        box.textContent = l;
+        lettersRow.appendChild(box);
+    });
+    highlightCurrent();
+}
+
+function highlightCurrent() {
+    document.querySelectorAll(".letter-box").forEach(el => el.classList.remove("active","waiting"));
+    const cur = document.querySelector(`.letter-box[data-index="${currentIndex}"]`);
+    if (cur) cur.classList.add("active");
+}
+
+function markSuccess(index) {
+    const el = document.querySelector(`.letter-box[data-index="${index}"]`);
+    if (el) {
+        el.classList.remove("active","waiting");
+        el.classList.add("success");
+    }
+}
+
+function markWaiting(index) {
+    const el = document.querySelector(`.letter-box[data-index="${index}"]`);
+    if (el) el.classList.add("waiting");
+}
+
+function startLetterTimer() {
+    clearTimeout(letterTimeout);
+    const curIndex = currentIndex;
+    letterTimeout = setTimeout(() => {
+        markWaiting(curIndex);
+        doubtOverlay.classList.add("show");
+    }, 5000);
+}
+
+function nextLetter() {
+    currentIndex++;
+    isLetterSolved = false;
+    if (currentIndex >= letters.length) {
+        instructionEl.textContent = `Parabéns! Você completou "${currentWord}".`;
+        nextWordBtn.style.display = "block";
+        stopWS();
+        return;
+    }
+    highlightCurrent();
+    startLetterTimer();
+}
+
+function stopWS() {
+    if (ws) ws.close();
+    clearInterval(frameInterval);
+    clearTimeout(letterTimeout);
+}
+
+function handlePrediction(predLetter, confidence) {
+    if (!predLetter) return;
+    predictedLetterEl.textContent = `${predLetter} (${(confidence*100).toFixed(1)}%)`;
+
+    const target = letters[currentIndex];
+    if (!target || isLetterSolved) return;
+
+    if (predLetter.toUpperCase() === target.toUpperCase()) {
+        isLetterSolved = true;
+        markSuccess(currentIndex);
+        clearTimeout(letterTimeout);
+        setTimeout(nextLetter, 800);
+    }
+}
+
+function connectWS() {
+    ws = new WebSocket(wsUrl);
+    ws.onopen = () => {
+        statusEl.textContent = "Status: conectado";
+        frameInterval = setInterval(sendFrame, 200);
+        startLetterTimer();
+    };
+    ws.onmessage = e => {
+        try {
+            const data = JSON.parse(e.data);
+            handlePrediction(data.letra, data.confianca);
+        } catch (err) {
+            console.error("Erro parse:", err);
+        }
+    };
+    ws.onclose = () => statusEl.textContent = "Status: desconectado";
+}
+
+function sendFrame() {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const frame = canvas.toDataURL("image/jpeg", 0.7);
+    ws.send(frame);
+}
+
+startButton.addEventListener("click", () => {
+    wordIndex = 0;
+    currentWord = staticWords[wordIndex];
+    currentIndex = 0;
+    renderLetters(currentWord);
+    nextWordBtn.style.display = "none";
+    instructionEl.textContent = `Soletre: "${currentWord}"`;
+    connectWS();
+});
+
+nextWordBtn.addEventListener("click", () => {
+    wordIndex = (wordIndex + 1) % staticWords.length;
+    currentWord = staticWords[wordIndex];
+    currentIndex = 0;
+    renderLetters(currentWord);
+    instructionEl.textContent = `Soletre: "${currentWord}"`;
+    nextWordBtn.style.display = "none";
+    connectWS();
+});
+
+doubtYesBtn.addEventListener("click", () => {
+    doubtOverlay.classList.remove("show");
+    const cur = document.querySelector(`.letter-box[data-index="${currentIndex}"]`);
+    if (cur) {
+        const orig = cur.textContent;
+        cur.textContent = `${orig} 💡`;
+        setTimeout(() => {
+            cur.textContent = orig;
+            markWaiting(currentIndex);
+            startLetterTimer();
+        }, 2000);
+    }
+});
+
+doubtNoBtn.addEventListener("click", () => {
+    doubtOverlay.classList.remove("show");
+    startLetterTimer();
+});
+
+startCamera();
+</script>
+</body>
+</html>
