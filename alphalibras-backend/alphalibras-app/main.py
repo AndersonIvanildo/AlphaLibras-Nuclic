@@ -2,6 +2,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import classification
 
+# --- NOVAS IMPORTAÇÕES ---
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
+# --- FIM DAS NOVAS IMPORTAÇÕES ---
+
+
 # Criação da instância principal da aplicação
 app = FastAPI(
     title="AlphaLibras API",
@@ -17,13 +24,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- NOVO: CRIAR E MONTAR PASTA 'STATIC' ---
+# Define o caminho para a pasta 'static' que estará no mesmo nível do 'main.py'
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+
+# Cria o diretório 'static' se ele não existir
+os.makedirs(static_dir, exist_ok=True)
+
+# Monta o diretório 'static' para que o FastAPI sirva arquivos dele
+# Agora, 'http://localhost:8000/static/logo.png' funcionará
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+# --- FIM DO NOVO CÓDIGO STATIC ---
+
+
 app.include_router(classification.router)
 
 
 @app.get("/")
 def read_root():
-    """ Rota raiz para verificar se a API está online. """
-    return {"status": "AlphaLibras API está online."}
+    """ 
+    Rota raiz modificada para servir o seu novo index2.html. 
+    """
+    html_path = os.path.join(os.path.dirname(__file__), "index2.html")
+    if os.path.exists(html_path):
+        return FileResponse(html_path)
+    return {"status": "AlphaLibras API está online, mas index2.html não foi encontrado."}
 
 if __name__ == "__main__":
     import uvicorn

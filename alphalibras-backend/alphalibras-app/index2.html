@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8" />
+<title>AlphaLibras - Exercício de Soletração</title>
+<style>
+    :root {
+        --bg: #f0f2f5;
+        --card: #fff;
+        --accent: #007bff;
+        --yellow: #FFD94D;
+        --green: #7CE389;
+        --red: #FF8A8A;
+        --muted: #666;
+        --border: #000;
+        /* Sombra base vinda do seu globals.css */
+        --shadow: 4px 4px 0px 0px var(--border);
+    }
+
+    /* --- LAYOUT 100% (Sem alterações) --- */
+    html, body {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        overflow: hidden;
+        font-family: "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        background-image: linear-gradient(to right, #e5e7eb 1px, transparent 1px), linear-gradient(to bottom, #e5e7eb 1px, transparent 1px);
+        background-size: 1.5rem 1.5rem;
+        box-sizing: border-box;
+    }
+
+    .container {
+        width: 100%;
+        height: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        padding: 24px;
+        box-sizing: border-box;
+    }
+
+    /* --- CORREÇÃO 2: BORDAS QUADRADAS --- */
+    .styled-box {
+        border: 2px solid var(--border);
+        box-shadow: var(--shadow);
+        background: var(--card);
+        border-radius: 0px; /* Alterado de 8px para 0px */
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    header {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+    }
+
+    header h1 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        border: 2px solid var(--border);
+        box-shadow: 2px 2px 0px 0px var(--border);
+        padding: 8px 12px;
+        background: var(--card);
+        margin: 0;
+        border-radius: 0px; /* Adicionado para consistência */
+    }
+
+    header img {
+        width: 28px;
+        height: 28px;
+    }
+
+    footer {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 20px;
+        flex-shrink: 0;
+    }
+
+    footer img {
+        height: 40px;
+        width: auto;
+    }
+
+    .app {
+        width: 100%;
+        display: flex;
+        gap: 30px;
+        flex-grow: 1;
+        min-height: 0;
+    }
+
+    /* --- CORREÇÃO 1: CÂMERA DENTRO DA BOX --- */
+    .cam {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Centraliza o vídeo horizontalmente */
+        text-align: center;
+        min-width: 0;
+    }
+
+    video {
+        border: 3px solid #ddd;
+        background: #000;
+        transform: scaleX(-1);
+        
+        /* * Define uma largura base, mas NUNCA deixa passar de 100% 
+         * da largura do container (respeitando o padding).
+        */
+        width: 100%;
+    
+        /* 2. Defina o tamanho MÁXIMO que ele pode ter */
+        max-width: 640px;
+        
+        height: auto;
+        aspect-ratio: 640 / 480;
+        margin: 0 auto;
+        border-radius: 0px; /* Alterado de 12px para 0px */
+    }
+
+    .panel {
+        width: 420px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    /* --- CORREÇÃO 2: ESTILO DOS BOTÕES (BORDAS) --- */
+    button {
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 1rem;
+        padding: 12px 16px;
+        border: 2px solid var(--border);
+        box-shadow: var(--shadow);
+        background: var(--card);
+        color: var(--border);
+        border-radius: 0px; /* Alterado de 8px para 0px */
+        transition: all 0.15s ease;
+    }
+
+    button:hover {
+        background: #f7f7f7;
+        transform: translateY(-2px) translateX(-1px);
+        box-shadow: 6px 6px 0px 0px var(--border);
+    }
+    
+    button:active {
+        transform: translateY(1px) translateX(1px);
+        box-shadow: 2px 2px 0px 0px var(--border);
+    }
+
+    #start-button {
+         background: var(--accent);
+         color: white;
+         border-color: var(--accent);
+         box-shadow: 4px 4px 0px 0px #0056b3; 
+    }
+    
+    #start-button:hover {
+        background: #0069d9;
+        transform: translateY(-2px) translateX(-1px);
+        box-shadow: 6px 6px 0px 0px #0056b3;
+    }
+    
+    #start-button:active {
+         transform: translateY(1px) translateX(1px);
+         box-shadow: 2px 2px 0px 0px #0056b3;
+    }
+
+    #next-word-btn {
+        display: none;
+        background: var(--green);
+        color: #063;
+        border-color: #063;
+        box-shadow: 4px 4px 0px 0px #054a05;
+    }
+
+    #next-word-btn:hover {
+        background: #6be079;
+        transform: translateY(-2px) translateX(-1px);
+        box-shadow: 6px 6px 0px 0px #054a05;
+    }
+    
+    /* --- CORREÇÃO 2: BORDAS DOS OUTROS ELEMENTOS --- */
+
+    .exercise {
+        background: #fbfbfb;
+        padding: 16px;
+        border: 1px solid #eee;
+        border-radius: 0px; /* Alterado de 10px para 0px */
+    }
+
+    .instruction {
+        font-size: 16px;
+        color: var(--muted);
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    .letters-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .letter-box {
+        width: 58px;
+        height: 68px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 20px;
+        color: #222;
+        border: 2px solid rgba(0, 0, 0, 0.08);
+        transition: all 0.15s ease;
+        background: var(--yellow);
+        border-radius: 0px; /* Alterado de 10px para 0px */
+    }
+
+    .letter-box.active {
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+        transform: translateY(-3px);
+        border-color: var(--accent);
+    }
+
+    .letter-box.success {
+        background: var(--green);
+        color: #064;
+    }
+
+    .prediction {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--accent);
+        height: 42px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: center;
+        padding: 8px;
+    }
+
+    .status {
+        margin-top: 6px;
+        font-size: 14px;
+        color: var(--muted);
+        text-align: center;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <header class="styled-box">
+        <h1>
+            <img src="/static/logo.png" alt="Logo AlphaLibras" />
+            <span>AlphaLibras</span>
+        </h1>
+    </header>
+
+    <main class="app"> 
+        
+        <div class="cam styled-box">
+            <h2>Câmera</h2>
+            <video id="video" autoplay playsinline muted></video>
+            <canvas id="canvas" width="640" height="480" style="display:none"></canvas>
+        </div>
+
+        <div class="panel styled-box">
+            <button id="start-button" class="primary">Iniciar Exercício</button>
+            <button id="next-word-btn">Próxima Palavra ▶</button>
+
+            <div class="exercise">
+                <div class="instruction" id="instruction">Clique em "Iniciar Exercício"</div>
+                <div class="letters-row" id="letters-row"></div>
+                <div class="status" id="status">Status: desconectado</div>
+            </div>
+
+            <div>
+                <div style="text-align:center;">Letra identificada:</div>
+                <div class="prediction" id="predicted-letter">-</div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="styled-box">
+        <img src="/static/brasao3_horizontal_cor_300dpi.png" alt="Universidade Federal do Ceará" />
+        <img src="/static/logo-nuclic.png" alt="Nuclic" />
+    </footer>
+</div>
+
+
+<script>
+// ATENÇÃO: Verifique se a URL do WebSocket está correta para seu ambiente
+const wsUrl = "ws://localhost:8000/api/v1/classify/ws";
+const wordUrl = "http://localhost:8000/api/v1/exercicios/soletracao";
+
+let currentWord = "";
+let letters = [];
+let currentIndex = 0;
+let isLetterSolved = false;
+let ws = null;
+let frameInterval = null;
+
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const instructionEl = document.getElementById("instruction");
+const lettersRow = document.getElementById("letters-row");
+const predictedLetterEl = document.getElementById("predicted-letter");
+const startButton = document.getElementById("start-button");
+const nextWordBtn = document.getElementById("next-word-btn");
+const statusEl = document.getElementById("status");
+
+async function startCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        await video.play();
+    } catch (err) {
+        console.error("Erro ao acessar a câmera: ", err);
+        instructionEl.textContent = "Erro ao acessar a câmera. Verifique as permissões.";
+    }
+}
+
+function renderLetters(word) {
+    lettersRow.innerHTML = "";
+    letters = Array.from(word);
+    letters.forEach((l, i) => {
+        const box = document.createElement("div");
+        box.className = "letter-box";
+        box.dataset.index = i;
+        box.textContent = l;
+        lettersRow.appendChild(box);
+    });
+    highlightCurrent();
+}
+
+function highlightCurrent() {
+    document.querySelectorAll(".letter-box").forEach(el => el.classList.remove("active"));
+    const cur = document.querySelector(`.letter-box[data-index="${currentIndex}"]`);
+    if (cur) cur.classList.add("active");
+}
+
+function markSuccess(index) {
+    const el = document.querySelector(`.letter-box[data-index="${index}"]`);
+    if (el) {
+        el.classList.remove("active");
+        el.classList.add("success");
+    }
+}
+
+function nextLetter() {
+    currentIndex++;
+    isLetterSolved = false;
+    if (currentIndex >= letters.length) {
+        instructionEl.textContent = `Parabéns! Você completou "${currentWord}".`;
+        nextWordBtn.style.display = "block";
+        stopWS();
+        return;
+    }
+    highlightCurrent();
+}
+
+function stopWS() {
+    if (ws) ws.close();
+    clearInterval(frameInterval);
+}
+
+function handlePrediction(predLetter, confidence) {
+    if (!predLetter) {
+        predictedLetterEl.textContent = "-";
+        return;
+    }
+    // Mostra a predição e a confiança
+    predictedLetterEl.textContent = `${predLetter} (${(confidence*100).toFixed(1)}%)`;
+
+    const target = letters[currentIndex];
+    if (!target || isLetterSolved) return;
+
+    if (predLetter.toUpperCase() === target.toUpperCase()) {
+        isLetterSolved = true;
+        markSuccess(currentIndex);
+        setTimeout(nextLetter, 800); // Espera um pouco antes de ir para a próxima
+    }
+}
+
+function connectWS() {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.close();
+    }
+    ws = new WebSocket(wsUrl);
+    ws.onopen = () => {
+        statusEl.textContent = "Status: conectado";
+        frameInterval = setInterval(sendFrame, 200); // Envia 5 frames por segundo
+    };
+    ws.onmessage = e => {
+        try {
+            const data = JSON.parse(e.data);
+            handlePrediction(data.letra, data.confianca);
+        } catch (err) {
+            console.error("Erro parse:", err);
+        }
+    };
+    ws.onclose = () => {
+        statusEl.textContent = "Status: desconectado";
+        clearInterval(frameInterval);
+    };
+    ws.onerror = () => {
+        statusEl.textContent = "Status: erro no WebSocket";
+        clearInterval(frameInterval);
+    }
+}
+
+function sendFrame() {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    
+    // Desenha o vídeo no canvas (necessário para o aspect-ratio funcionar)
+    // Usamos as dimensões do *canvas* (640x480) para desenhar
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const frame = canvas.toDataURL("image/jpeg", 0.7);
+    ws.send(frame);
+}
+
+// --- Lógica de Integração com Backend HTTP ---
+
+async function fetchNewWord() {
+    instructionEl.textContent = "Carregando novo exercício...";
+    statusEl.textContent = "Status: buscando palavra";
+    startButton.disabled = true;
+    nextWordBtn.style.display = "none";
+    
+    try {
+        // 1. Busca a palavra da API
+        const response = await fetch(wordUrl);
+        if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
+        
+        const data = await response.json();
+        currentWord = data.palavra.toUpperCase();
+        
+        // 2. Configura o exercício
+        currentIndex = 0;
+        isLetterSolved = false;
+        renderLetters(currentWord);
+        instructionEl.textContent = `Soletre: "${currentWord}"`;
+        
+        // 3. Conecta ao WebSocket
+        connectWS();
+
+    } catch (error) {
+        console.error("Erro ao buscar palavra:", error);
+        instructionEl.textContent = "Erro ao carregar exercício. Tente novamente.";
+        statusEl.textContent = "Status: erro de conexão";
+    } finally {
+        startButton.disabled = false;
+    }
+}
+
+startButton.addEventListener("click", fetchNewWord);
+nextWordBtn.addEventListener("click", fetchNewWord);
+
+// Inicia a câmera assim que a página carrega
+startCamera();
+</script>
+</body>
+</html>
