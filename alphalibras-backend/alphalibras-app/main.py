@@ -2,12 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import classification
 
-# --- NOVAS IMPORTAÇÕES ---
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
-# --- FIM DAS NOVAS IMPORTAÇÕES ---
-
 
 # Criação da instância principal da aplicação
 app = FastAPI(
@@ -24,7 +21,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- NOVO: CRIAR E MONTAR PASTA 'STATIC' ---
 # Define o caminho para a pasta 'static' que estará no mesmo nível do 'main.py'
 static_dir = os.path.join(os.path.dirname(__file__), "static")
 
@@ -32,10 +28,7 @@ static_dir = os.path.join(os.path.dirname(__file__), "static")
 os.makedirs(static_dir, exist_ok=True)
 
 # Monta o diretório 'static' para que o FastAPI sirva arquivos dele
-# Agora, 'http://localhost:8000/static/logo.png' funcionará
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
-# --- FIM DO NOVO CÓDIGO STATIC ---
-
 
 app.include_router(classification.router)
 
