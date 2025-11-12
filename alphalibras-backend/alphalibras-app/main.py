@@ -38,7 +38,7 @@ def read_root():
     """ 
     Rota raiz modificada para servir o seu novo index2.html. 
     """
-    html_path = os.path.join(os.path.dirname(__file__), "index2.html")
+    html_path = os.path.join(os.path.dirname(__file__), "index.html")
     if os.path.exists(html_path):
         return FileResponse(html_path)
     return {"status": "AlphaLibras API está online, mas index2.html não foi encontrado."}
