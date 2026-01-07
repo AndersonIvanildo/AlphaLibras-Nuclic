@@ -308,8 +308,17 @@
 
 <script>
 // ATENÇÃO: Verifique se a URL do WebSocket está correta para seu ambiente
-const wsUrl = "ws://localhost:8000/api/v1/classify/ws";
-const wordUrl = "http://localhost:8000/api/v1/exercicios/soletracao";
+//const wsUrl = "ws://localhost:8000/api/v1/classify/ws";
+//const wordUrl = "http://localhost:8000/api/v1/exercicios/soletracao";
+
+// Detecta automaticamente se o site está em HTTPS ou HTTP
+const isHttps = window.location.protocol === 'https:';
+const wsProtocol = isHttps ? 'wss://' : 'ws://';
+const host = window.location.host; // Pega o domínio atual (ex: alphalibras.onrender.com)
+
+// Configura as URLs de forma dinâmica
+const wsUrl = `${wsProtocol}${host}/api/v1/classify/ws`;
+const wordUrl = `${window.location.origin}/api/v1/exercicios/soletracao`;
 
 let currentWord = "";
 let letters = [];
