@@ -171,9 +171,14 @@ async def websocket_endpoint(websocket: WebSocket):
             await asyncio.sleep(0.05)
 
     except WebSocketDisconnect:
-        print("Cliente desconectado.")
+        # Se o cliente desconectou (fechou a aba), a conexão já morreu.
+        print("Cliente desconectou.")
+        
     except Exception as e:
+        # Se houve outro erro (ex: bug no código) é feito uma tentativa de fechar a conexão.
         print(f"Ocorreu um erro no WebSocket: {e}")
-    finally:
-        await websocket.close()
-        print("Conexão WebSocket fechada.")
+        try:
+            await websocket.close()
+        except RuntimeError:
+            # Se já estiver fechado, apenas ignora o erro
+            pass
