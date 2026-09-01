@@ -2,11 +2,12 @@ import base64
 import asyncio
 import random
 from pathlib import Path
+from typing import Annotated
 
 import cv2
 import mediapipe as mp
 import numpy as np
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
 from alphalibras_app.core.model_inference import SignClassifier
 from alphalibras_app.utils.hand_preprocess import extrair_landmarks
@@ -32,59 +33,106 @@ CLASSES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'I', 'L', 'M', 'N', 'O', 'P', 'Q',
 
 classifier = SignClassifier(model_path=str(MODEL_PATH), class_names=CLASSES, confidence_threshold=0.80)
 
-# Lista de palavras para os exercícios de soletração
+# Lista de palavras para os exercícios de soletração.
+# Mantem apenas letras presentes em CLASSES; letras com movimento ou sem suporte
+# no modelo atual (como H, J, K, X e Z) ficam fora dos desafios validados.
 PALAVRAS_EXERCICIOS = [
     "AMOR",
+    "AR",
+    "ASA",
+    "AVE",
     "BOLA",
+    "BOLO",
+    "BOM",
     "CASA",
+    "COLA",
+    "COR",
+    "CURA",
+    "DADO",
+    "DAMA",
     "DEDO",
-    "ESCOLA",
-    "FOGO",
-    "GATO",
-    "COMIDA",
-    "LUA",
-    "PAI",
-    "QUE",
-    "RATO",
-    "SAPO",
-    "TIO",
-    "UVA",
-    "VER",
-    "VIDA",
-    "BOCA",
     "DEUS",
+    "DIA",
+    "DOCE",
+    "DOR",
+    "ELA",
+    "ELE",
+    "ESCOLA",
     "EU",
     "FACA",
+    "FILA",
+    "FIM",
+    "FOGO",
+    "GALO",
+    "GATO",
     "GELO",
+    "GOTA",
     "IDA",
+    "IGUAL",
+    "LADO",
     "LAMA",
+    "LAR",
+    "LATA",
+    "LEAL",
+    "LUA",
+    "LUVA",
+    "MAR",
+    "MALA",
     "MESA",
+    "MEU",
+    "MIL",
+    "MIMO",
+    "MINA",
+    "MUNDO",
+    "MUDO",
+    "NADA",
+    "NOME",
     "NOVE",
     "OITO",
+    "OVO",
+    "PAI",
+    "PANO",
     "PATO",
+    "PESO",
+    "POTE",
+    "QUE",
     "QUEDA",
+    "RATO",
     "REDE",
+    "RIO",
+    "RODA",
+    "ROSA",
+    "RUA",
+    "SAPO",
+    "SETE",
     "SOL",
+    "TETO",
+    "TIO",
+    "UVA",
     "URSO",
     "VACA",
-    "BOM",
-    "COR",
-    "DIA",
-    "ELE",
-    "FIM",
-    "GOTA",
-    "ROSA",
-    "LADO",
-    "MAR",
-    "POTE",
-    "DADO",
-    "RUA",
-    "OVO",
-    "RODA",
-    "DAMA",
-    "MUDO",
-    "SETE"
+    "VASO",
+    "VER",
+    "VIDA",
+    "VILA",
+    "VIVO",
+    "VOA",
+    "VOVO",
+    "VULTO",
+    "WEB",
+    "YOGA",
+    "COMIDA",
 ]
+
+
+def palavras_suportadas() -> list[str]:
+    """Retorna palavras que podem ser validadas pelo modelo atual."""
+    letras_suportadas = set(CLASSES)
+    return [
+        palavra
+        for palavra in sorted(set(PALAVRAS_EXERCICIOS))
+        if set(palavra).issubset(letras_suportadas)
+    ]
 
 # ROTAS DE EXERCÍCIOS (HTTP)
 
@@ -96,11 +144,38 @@ def get_exercicio_soletracao():
         dict: Dados do exercício com tipo, palavra sorteada e instrução para o
         usuário.
     """
-    palavra_selecionada = random.choice(PALAVRAS_EXERCICIOS)
+    palavra_selecionada = random.choice(palavras_suportadas())
     return {
         "tipo": "soletracao",
         "palavra": palavra_selecionada,
         "instrucao": f"Use a câmera para soletrar a palavra: '{palavra_selecionada}'"
+    }
+
+
+@router.get("/exercicios/roadmap")
+def get_roadmap_soletracao(
+    quantidade: Annotated[int, Query(ge=1, le=30)] = 10
+):
+    """Sorteia um roteiro de palavras para um desafio de soletração."""
+    palavras = palavras_suportadas()
+    total = min(quantidade, len(palavras))
+    selecionadas = random.sample(palavras, total)
+
+    return {
+        "tipo": "roadmap_soletracao",
+        "quantidade": total,
+        "palavras": selecionadas,
+        "letras_suportadas": CLASSES,
+        "instrucao": "Complete as palavras na ordem sorteada."
+    }
+
+
+@router.get("/exercicios/letras")
+def get_letras_suportadas():
+    """Lista letras que o modelo atual consegue classificar."""
+    return {
+        "letras": CLASSES,
+        "observacao": "Letras com movimento ou sem classe treinada ficam fora da validação automática."
     }
 
 @router.get("/exercicios/identificacao")
