@@ -149,7 +149,7 @@
         pointer-events: none;
         transform: scaleX(-1);
         display: none;
-        z-index: 3;
+        z-index: 30;
     }
 
     .camera-tools {
@@ -158,19 +158,29 @@
         right: 10px;
         display: flex;
         gap: 8px;
-        z-index: 20;
+        z-index: 50;
     }
 
     .icon-btn {
-        width: 44px;
-        height: 42px;
+        display: grid;
+        place-items: center;
+        width: 52px;
+        height: 52px;
         padding: 0;
         border: 2px solid var(--line);
-        background: transparent;
+        background: rgba(255, 253, 248, 0.92);
         border-radius: 6px;
+        font-size: 1.45rem;
         font-weight: 900;
+        line-height: 1;
         cursor: pointer;
         color: var(--blue);
+        box-shadow: 0 4px 12px rgba(21, 101, 192, 0.18);
+        text-shadow:
+            0 1px 0 #fff,
+            1px 0 0 #fff,
+            0 -1px 0 #fff,
+            -1px 0 0 #fff;
     }
 
     .status-strip {
@@ -465,6 +475,21 @@
         z-index: 6;
     }
 
+    .video-wrap.drawably-host > .hand-overlay {
+        position: absolute;
+        z-index: 30;
+    }
+
+    .video-wrap.drawably-host > .camera-tools {
+        position: absolute;
+        z-index: 50;
+    }
+
+    .video-wrap.drawably-host > .camera-tools > .icon-btn {
+        position: relative;
+        z-index: 51;
+    }
+
     footer {
         display: flex;
         justify-content: center;
@@ -698,7 +723,7 @@ let drawablyControls = null;
 function decorateDrawably(root = document) {
     if (!drawablyControls) return;
 
-    root.querySelectorAll("button:not(.drawably-host)").forEach((button) => {
+    root.querySelectorAll("button:not(#btn-help):not(.drawably-host)").forEach((button) => {
         drawablyControls.button?.(button, drawablyTheme);
     });
     root.querySelectorAll(".side-panel:not(.drawably-host),.video-panel:not(.drawably-host),.video-wrap:not(.drawably-host),.roadmap:not(.drawably-host),.free-tools:not(.drawably-host),.metric:not(.drawably-host),.letter-box:not(.drawably-host)").forEach((card) => {
@@ -830,8 +855,9 @@ function updateLetterProgress() {
 
 function updateOverlayImage() {
     const letter = state.letters[state.letterIndex];
-    if (!letter) return;
+    if (!letter) return false;
     el.overlay.src = `/static/maos/${letter.toLowerCase()}.png`;
+    return true;
 }
 
 function hideHelp() {
@@ -842,9 +868,14 @@ function hideHelp() {
 }
 
 function toggleHelp() {
+    if (!state.helpVisible && !updateOverlayImage()) {
+        el.feedback.textContent = "Escolha uma letra ou inicie um desafio para ver a ajuda.";
+        return;
+    }
+
     state.helpVisible = !state.helpVisible;
     el.overlay.style.display = state.helpVisible ? "block" : "none";
-    el.help.textContent = state.helpVisible ? "x" : "?";
+    el.help.textContent = state.helpVisible ? "X" : "?";
     el.help.title = state.helpVisible ? "Ocultar ajuda" : "Mostrar ajuda";
 }
 
