@@ -2,8 +2,12 @@ import cv2
 import numpy as np
 import mediapipe as mp
 from pathlib import Path
-from core.model_inference import SignClassifier
-from utils.hand_preprocess import extrair_landmarks, desenhar_esqueleto_na_imagem, desenhar_esqueleto_mao
+from alphalibras_app.core.model_inference import SignClassifier
+from alphalibras_app.utils.hand_preprocess import (
+    desenhar_esqueleto_mao,
+    desenhar_esqueleto_na_imagem,
+    extrair_landmarks,
+)
 
 
 # Configurações do MediaPipe
@@ -15,7 +19,8 @@ hands_detector = mp_hands.Hands(
     min_tracking_confidence=0.5
 )
 
-MODEL_PATH = Path.cwd() / "models" / "modelo_libras.tflite"
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_PATH = BASE_DIR / "models" / "modelo_libras.tflite"
 # ---------------------------------------------
 
 CLASSES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'I', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'Y']

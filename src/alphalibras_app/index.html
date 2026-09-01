@@ -454,7 +454,7 @@ function nextLetter() {
 
     if (currentIndex >= letters.length) {
         instructionEl.textContent = `Parabéns! "${currentWord}" concluída.`;
-        predictedLetterEl.textContent = "🎉";
+        predictedLetterEl.textContent = "Concluído";
         
         // Troca a mensagem "Sua mão..." por instrução de avançar
         if(labelEl) labelEl.textContent = "Clique abaixo para continuar:";

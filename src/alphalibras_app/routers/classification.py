@@ -1,24 +1,21 @@
-import cv2
-import numpy as np
-import mediapipe as mp
-from pathlib import Path
 import base64
 import asyncio
 import random
+from pathlib import Path
 
-# Importações do FastAPI e WebSocket
+import cv2
+import mediapipe as mp
+import numpy as np
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-# Importações dos módulos próprios
-from core.model_inference import SignClassifier
-from utils.hand_preprocess import extrair_landmarks
+from alphalibras_app.core.model_inference import SignClassifier
+from alphalibras_app.utils.hand_preprocess import extrair_landmarks
 
 router = APIRouter(
     prefix="/api/v1",
     tags=["Classification"]
 )
 
-#  CARREGAMENTO DO MODELO
 print("Carregando o detector de mãos do MediaPipe...")
 mp_hands = mp.solutions.hands
 hands_detector = mp_hands.Hands(
@@ -29,10 +26,10 @@ hands_detector = mp_hands.Hands(
 )
 print("Detector de mãos carregado.")
 
-MODEL_PATH = Path.cwd() / "models" / "modelo_libras.tflite"
+BASE_DIR = Path(__file__).resolve().parents[1]
+MODEL_PATH = BASE_DIR / "models" / "modelo_libras.tflite"
 CLASSES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'I', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'Y']
 
-# Instancia do classificador de sinais
 classifier = SignClassifier(model_path=str(MODEL_PATH), class_names=CLASSES, confidence_threshold=0.80)
 
 # Lista de palavras para os exercícios de soletração
