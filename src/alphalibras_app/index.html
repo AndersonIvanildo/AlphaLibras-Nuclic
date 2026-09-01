@@ -9,13 +9,14 @@
     :root {
         --ink: #252525;
         --paper: #fffdf8;
-        --line: #2f2f2f;
         --blue: #1565c0;
+        --line: var(--blue);
         --green: #2e7d32;
         --rose: #b3265e;
         --yellow: #ffd166;
         --mint: #b8e6d3;
-        --shadow: rgba(25, 25, 25, 0.13);
+        --soft-line: rgba(21, 101, 192, 0.42);
+        --shadow: rgba(21, 101, 192, 0.13);
     }
 
     * { box-sizing: border-box; }
@@ -236,7 +237,7 @@
         grid-template-columns: 1fr auto;
         align-items: end;
         gap: 10px;
-        border-top: 2px dashed #999;
+        border-top: 2px dashed var(--soft-line);
         padding-top: 12px;
         margin-top: 12px;
     }
@@ -269,7 +270,7 @@
         margin-top: 14px;
         padding: 12px;
         background: #fffaf0;
-        border: 2px dashed #777;
+        border: 2px dashed var(--soft-line);
         border-radius: 8px;
     }
 
@@ -438,6 +439,24 @@
     }
 
     .hidden { display: none !important; }
+
+    .drawably-host {
+        border-color: transparent !important;
+        box-shadow: none;
+    }
+
+    .drawably-host > .drawably-svg {
+        z-index: 1;
+    }
+
+    .drawably-host > :not(.drawably-svg) {
+        position: relative;
+        z-index: 2;
+    }
+
+    .video-wrap.drawably-host > .drawably-svg {
+        z-index: 6;
+    }
 
     footer {
         display: flex;
@@ -666,18 +685,36 @@ const el = {
 };
 
 const ctx = el.canvas.getContext("2d");
+const drawablyTheme = { stroke: "#1565c0", width: 2 };
+let drawablyControls = null;
+
+function decorateDrawably(root = document) {
+    if (!drawablyControls) return;
+
+    root.querySelectorAll("button:not(.drawably-host)").forEach((button) => {
+        drawablyControls.button?.(button, drawablyTheme);
+    });
+    root.querySelectorAll(".side-panel:not(.drawably-host),.video-panel:not(.drawably-host),.video-wrap:not(.drawably-host),.roadmap:not(.drawably-host),.free-tools:not(.drawably-host),.metric:not(.drawably-host),.letter-box:not(.drawably-host)").forEach((card) => {
+        drawablyControls.card?.(card, drawablyTheme);
+    });
+    root.querySelectorAll(".input-row:not(.drawably-host)").forEach((inputWrap) => {
+        drawablyControls.input?.(inputWrap, drawablyTheme);
+    });
+    root.querySelectorAll("[data-drawably-toggle]:not(.drawably-host)").forEach((toggle) => {
+        drawablyControls.toggle?.(toggle, drawablyTheme);
+    });
+}
 
 async function applyDrawably() {
     try {
         const mod = await import("https://esm.unpkg.com/drawably@0.3.10");
-        const drawButton = mod.default || mod.drawablyButton;
-        const drawInput = mod.drawablyInput;
-        const drawCard = mod.drawablyCard;
-        const drawToggle = mod.drawablyToggle;
-        document.querySelectorAll("button").forEach((button) => drawButton?.(button));
-        document.querySelectorAll(".side-panel,.video-panel,.roadmap,.free-tools,.metric,.letter-box").forEach((card) => drawCard?.(card));
-        document.querySelectorAll("input").forEach((input) => drawInput?.(input));
-        document.querySelectorAll("[data-drawably-toggle]").forEach((toggle) => drawToggle?.(toggle));
+        drawablyControls = {
+            button: mod.drawablyButton || mod.default,
+            card: mod.drawablyCard,
+            input: mod.drawablyInput,
+            toggle: mod.drawablyToggle
+        };
+        decorateDrawably();
     } catch (error) {
         console.warn("Drawably indisponível; usando estilos locais.", error);
     }
@@ -748,6 +785,7 @@ function renderLetters(word) {
         box.textContent = letter;
         el.lettersRow.appendChild(box);
     });
+    decorateDrawably(el.lettersRow);
     highlightCurrentLetter();
     updateLetterProgress();
 }
