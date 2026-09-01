@@ -90,12 +90,11 @@ PALAVRAS_EXERCICIOS = [
 
 @router.get("/exercicios/soletracao")
 def get_exercicio_soletracao():
-    """
-    Rota para obter um exercício de soletração.
-    
-    Retorna uma palavra aleatória da nossa lista para o usuário soletrar.
-    O front-end usará essa palavra para instruir o usuário e, em seguida,
-    abrirá uma conexão WebSocket para validar a soletração em tempo real.
+    """Obtém um exercício de soletração.
+
+    Returns:
+        dict: Dados do exercício com tipo, palavra sorteada e instrução para o
+        usuário.
     """
     palavra_selecionada = random.choice(PALAVRAS_EXERCICIOS)
     return {
@@ -106,12 +105,11 @@ def get_exercicio_soletracao():
 
 @router.get("/exercicios/identificacao")
 def get_exercicio_identificacao():
-    """
-    Rota para um exercício de identificação de sinal.
+    """Obtém um exercício de identificação de sinal.
 
-    Sorteia uma letra correta e mais 3 opções incorretas para criar
-    um exercício de múltipla escolha. O front-end pode usar a
-    `letra_correta` para exibir a imagem/vídeo do sinal correspondente.
+    Returns:
+        dict: Dados do exercício com a letra correta, as opções de resposta e a
+        instrução para o usuário.
     """
     letra_correta = random.choice(CLASSES)
     
@@ -133,12 +131,15 @@ def get_exercicio_identificacao():
 
 @router.websocket("/classify/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    """
-    Este é o endpoint principal para a classificação em tempo real.
-    
-    Ele aceita uma conexão WebSocket, recebe frames de vídeo em formato base64,
-    processa cada frame usando o modelo de IA e retorna a letra prevista.
-    É a rota "base" de funcionamento do seu sistema de reconhecimento.
+    """Classifica sinais em tempo real por WebSocket.
+
+    Args:
+        websocket: Conexão WebSocket usada para receber frames em base64 e
+            enviar a letra prevista.
+
+    Returns:
+        None: A função mantém a conexão aberta enquanto o cliente estiver
+        conectado.
     """
     await websocket.accept()
     print("Cliente conectado via WebSocket.")

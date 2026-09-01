@@ -3,8 +3,13 @@ import numpy as np
 
 class SignClassifier:
     def __init__(self, model_path, class_names, confidence_threshold=0.70):
-        """
-        Inicializa o classificador de sinais usando o TFLite Runtime.
+        """Inicializa o classificador de sinais usando o TFLite Runtime.
+
+        Args:
+            model_path: Caminho do arquivo do modelo TFLite.
+            class_names: Lista com os rótulos das classes reconhecidas pelo
+                modelo.
+            confidence_threshold: Confiança mínima para aceitar uma previsão.
         """
         print("Carregando o modelo de inferência TFLite...")
         # Carrega o modelo TFLite e aloca os tensores.
@@ -20,8 +25,16 @@ class SignClassifier:
         print("Modelo TFLite carregado com sucesso!")
 
     def predict(self, landmarks):
-        """
-        Faz a previsão de um sinal a partir dos landmarks da mão.
+        """Faz a previsão de um sinal a partir dos landmarks da mão.
+
+        Args:
+            landmarks: Lista de coordenadas normalizadas da mão, ou `None`
+                quando nenhuma mão foi detectada.
+
+        Returns:
+            tuple[str | None, float | None]: Letra prevista e confiança da
+            previsão. Retorna `(None, None)` quando não há landmarks ou quando
+            a confiança fica abaixo do limiar configurado.
         """
         if landmarks is None:
             return None, None

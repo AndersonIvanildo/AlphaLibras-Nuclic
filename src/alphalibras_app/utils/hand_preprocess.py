@@ -12,9 +12,19 @@ hands_detector = mp_hands.Hands(
 )
 
 def extrair_landmarks(entrada, detector: mp.solutions.hands.Hands = None) -> list | None:
-    """
-    Extrai os landmarks da mão de uma entrada que pode ser uma imagem ou um
-    resultado pré-processado do MediaPipe.
+    """Extrai e normaliza os landmarks da mão mais próxima.
+
+    Args:
+        entrada: Imagem RGB em `np.ndarray` ou resultado já processado pelo
+            MediaPipe.
+        detector: Detector do MediaPipe usado quando `entrada` for uma imagem.
+
+    Returns:
+        list | None: Lista com 63 coordenadas normalizadas da mão detectada, ou
+        `None` quando nenhuma mão é encontrada.
+
+    Raises:
+        ValueError: Se `entrada` for uma imagem e `detector` não for informado.
     """
     resultado = None
 
@@ -68,17 +78,15 @@ def extrair_landmarks(entrada, detector: mp.solutions.hands.Hands = None) -> lis
 
 
 def desenhar_esqueleto_na_imagem(imagem_bgr: np.ndarray, resultado_mediapipe) -> np.ndarray:
-    """
-    Desenha o esqueleto da(s) mão(s) detectada(s) sobre a imagem original.
+    """Desenha o esqueleto das mãos detectadas sobre a imagem original.
 
     Args:
-        imagem_bgr: A imagem original no formato BGR (vinda do OpenCV).
-        resultado_mediapipe: O objeto de resultado retornado pela função
-                             'hands.process()'.
+        imagem_bgr: Imagem original no formato BGR.
+        resultado_mediapipe: Resultado retornado por `hands.process()`.
 
     Returns:
-        Uma nova imagem (cópia da original) com o esqueleto da mão desenhado.
-        Se nenhuma mão for detectada, retorna uma cópia da imagem original.
+        np.ndarray: Cópia da imagem original com o esqueleto desenhado. Se
+        nenhuma mão for detectada, retorna apenas a cópia da imagem original.
     """
     # Criação de uma cópia da imagem para não modificar a original
     imagem_com_desenho = imagem_bgr.copy()
@@ -100,18 +108,16 @@ def desenhar_esqueleto_na_imagem(imagem_bgr: np.ndarray, resultado_mediapipe) ->
 
 
 def desenhar_esqueleto_mao(landmarks_normalizados: list, size=256):
-    """
-    Cria uma imagem preta com o esqueleto da mão desenhado manualmente com OpenCV
-    a partir dos landmarks normalizados.
+    """Cria uma imagem com o esqueleto da mão a partir dos landmarks.
 
     Args:
-        landmarks_normalizados: Uma lista de 63 floats normalizados (x, y, z)
-                                representando os 21 landmarks da mão.
-        size: O tamanho (largura e altura) da imagem de saída em pixels.
+        landmarks_normalizados: Lista com 63 coordenadas normalizadas,
+            representando os 21 landmarks da mão no formato `(x, y, z)`.
+        size: Largura e altura da imagem de saída em pixels.
 
     Returns:
-        Uma imagem NumPy array (size, size, 3) com o esqueleto da mão, ou
-        uma imagem preta se os landmarks_normalizados forem None ou inválidos.
+        np.ndarray: Imagem no formato `(size, size, 3)` com o esqueleto da mão,
+        ou uma imagem preta quando os landmarks forem ausentes ou inválidos.
     """
     output_image = np.zeros((size, size, 3), dtype=np.uint8) # Fundo preto
 
