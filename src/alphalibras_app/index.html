@@ -365,8 +365,8 @@
     }
 
     .roadmap {
-        margin-top: 18px;
-        padding: 14px;
+        margin: 0 0 18px;
+        padding: 14px 18px 16px;
     }
 
     .roadmap-track {
@@ -488,6 +488,9 @@
         .prediction-area { grid-template-columns: 1fr; text-align: center; }
         .draw-btn { width: 100%; }
         .letter-box { width: 42px; height: 50px; font-size: 1.45rem; }
+        .roadmap { padding: 12px 10px 14px; }
+        .roadmap-track { grid-template-columns: repeat(10, minmax(26px, 1fr)); }
+        .roadmap-step { width: 30px; height: 30px; font-size: 0.6rem; }
     }
 </style>
 </head>
@@ -506,6 +509,11 @@
             <button class="draw-btn" id="tab-free" type="button">Modo livre</button>
         </nav>
     </header>
+
+    <aside class="roadmap" id="roadmap-panel">
+        <h2 class="panel-title">Progresso</h2>
+        <div class="roadmap-track" id="roadmap-track" aria-label="Progresso das 10 palavras"></div>
+    </aside>
 
     <main class="layout">
         <section class="video-panel" aria-label="Câmera">
@@ -576,10 +584,6 @@
                 </div>
             </div>
 
-            <aside class="roadmap" id="roadmap-panel">
-                <h2 class="panel-title">Progresso</h2>
-                <div class="roadmap-track" id="roadmap-track" aria-label="Progresso das 10 palavras"></div>
-            </aside>
         </section>
     </main>
 
