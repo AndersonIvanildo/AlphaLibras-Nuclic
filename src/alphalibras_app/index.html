@@ -3,604 +3,1053 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AlphaLibras - Exercício de Soletração</title>
-
-<link rel="stylesheet" href="https://unpkg.com/papercss@1.9.2/dist/paper.min.css">
-<script type="module" src="https://unpkg.com/wired-elements?module"></script>
-
+<title>AlphaLibras</title>
+<link rel="stylesheet" href="https://unpkg.com/drawably@0.3.10/style.css">
 <style>
-    /* CONFIGURAÇÃO GERAL */
+    :root {
+        --ink: #252525;
+        --paper: #fffdf8;
+        --line: #2f2f2f;
+        --blue: #1565c0;
+        --green: #2e7d32;
+        --rose: #b3265e;
+        --yellow: #ffd166;
+        --mint: #b8e6d3;
+        --shadow: rgba(25, 25, 25, 0.13);
+    }
+
+    * { box-sizing: border-box; }
+
     body {
-        /* Cor de fundo base */
-        background-color: #f8f9fa; 
-        
-        /* O Desenho das bolinhas */
-        background-image: radial-gradient(#bdc3c7 1.5px, transparent 1.5px);
-        
-        /* O espaçamento entre as bolinhas */
-        background-size: 20px 20px;
-        
-        font-family: 'Neucha', cursive;
-        overflow-x: hidden;
         margin: 0;
+        min-height: 100vh;
+        color: var(--ink);
+        font-family: "Trebuchet MS", Arial, sans-serif;
+        background-color: #f7f3e8;
+        background-image:
+            linear-gradient(rgba(255,255,255,0.65), rgba(255,255,255,0.65)),
+            radial-gradient(#cfb76d 1px, transparent 1px),
+            radial-gradient(#82b6ad 1px, transparent 1px);
+        background-position: 0 0, 0 0, 12px 12px;
+        background-size: auto, 24px 24px, 24px 24px;
     }
 
-    .main-container {
-        max-width: 1200px;
+    button, input, select { font: inherit; }
+
+    .page {
+        width: min(1180px, calc(100% - 32px));
         margin: 0 auto;
-        padding: 20px;
+        padding: 24px 0 18px;
     }
 
-    /* CABEÇALHO */
     header {
-        margin-bottom: 30px;
-        text-align: center;
-    }
-    
-    header h1 {
-        display: inline-flex;
-        align-items: center;
-        gap: 15px;
-        color: #41403e;
-        border: none; 
-        padding-bottom: 10px;
-    }
-
-    header img {
-        height: 60px;
-        width: auto;
-    }
-
-    /* LAYOUT PRINCIPAL */
-    .app-grid {
         display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    .brand img {
+        width: 58px;
+        height: 58px;
+        object-fit: contain;
+    }
+
+    h1 {
+        margin: 0;
+        font-size: clamp(2rem, 5vw, 3.8rem);
+        line-height: 0.95;
+        letter-spacing: 0;
+    }
+
+    .subtitle {
+        margin: 4px 0 0;
+        color: #5b5b5b;
+        font-size: 1rem;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 10px;
         flex-wrap: wrap;
-        gap: 3rem;
-        justify-content: center;
-        align-items: flex-start;
+        justify-content: flex-end;
     }
 
-    /* CÂMERA */
-    .cam-area {
-        flex: 2;
-        min-width: 300px;
-        max-width: 680px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .video-frame {
-        position: relative;
+    .draw-btn {
+        min-height: 42px;
+        border: 2px solid var(--line);
         background: #fff;
-        padding: 10px;
-        
-        /* Borda irregular para parecer desenhado a mão */
-        border: 3px solid #41403e;
-        border-radius: 2% 95% 1% 96% / 95% 2% 92% 5%; 
-        box-shadow: 10px 15px 0px rgba(0,0,0,0.1); 
-        
-        width: 100%;
-        box-sizing: border-box;
+        color: var(--ink);
+        cursor: pointer;
+        padding: 9px 15px;
+        border-radius: 6px;
+        font-weight: 700;
+    }
+
+    .draw-btn.primary { background: var(--yellow); }
+    .draw-btn.success { background: var(--mint); }
+    .draw-btn.danger { background: #ffc6c6; }
+    .draw-btn[disabled] { opacity: 0.48; cursor: not-allowed; }
+    .draw-btn.active { background: #b7d7ff; }
+
+    .layout {
+        display: grid;
+        grid-template-columns: minmax(320px, 1.55fr) minmax(310px, 0.95fr);
+        gap: 24px;
+        align-items: start;
+    }
+
+    .video-panel,
+    .side-panel,
+    .roadmap,
+    .free-tools {
+        background: var(--paper);
+        border: 2px solid var(--line);
+        border-radius: 8px;
+        box-shadow: 8px 10px 0 var(--shadow);
+    }
+
+    .video-panel { padding: 12px; }
+
+    .video-wrap {
+        position: relative;
+        overflow: hidden;
+        border: 2px solid var(--line);
+        border-radius: 7px;
+        background: #e8ecef;
+        aspect-ratio: 4 / 3;
     }
 
     video {
         width: 100%;
-        height: auto;
+        height: 100%;
         display: block;
-        transform: scaleX(-1); /* Espelhar */
-        border-radius: 4px;
-        background: #eee; 
+        object-fit: cover;
+        transform: scaleX(-1);
     }
 
-    .status-text, #status {
-        display: none !important;
-    }
-
-    /* PAINEL DE CONTROLE */
-    .control-panel {
-        flex: 1;
-        min-width: 320px;
-        display: flex;
-        flex-direction: column;
-        gap: 25px;
-    }
-
-    /* Card de Exercício */
-    .exercise-card {
-        background: #fff;
-        padding: 25px;
-        /* Borda "rabiscada" via CSS radius */
-        border: 2px solid #41403e;
-        border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
-        /* Sombra interna suave */
-        box-shadow: 
-            2px 3px 20px rgba(0,0,0,0.1), 
-            0 0 60px rgba(255, 240, 200, 0.2) inset;
-        min-height: 280px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .instruction {
-        font-size: 1.6rem;
-        color: #41403e;
-        margin-bottom: 20px;
-        text-align: center;
-        font-weight: bold;
-        line-height: 1.2;
-    }
-
-    /* LETRAS */
-    .letters-row {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        justify-content: center;
-        margin: 20px 0;
-    }
-
-    .letter-box {
-        width: 60px;
-        height: 70px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #41403e;
-        background: #fff;
-        border: 3px solid #41403e;
-        border-radius: 5px 20px 5px 20px; /* Formato irregular */
-        transition: transform 0.2s;
-    }
-
-    .letter-box.active {
-        border-color: #0071de;
-        color: #0071de;
-        transform: scale(1.15) rotate(-3deg);
-        box-shadow: 4px 4px 0px rgba(0,113,222, 0.2);
-    }
-
-    .letter-box.success {
-        border-color: #2e7d32;
-        background-color: #c8e6c9;
-        color: #1b5e20;
-        transform: rotate(2deg);
-    }
-
-    /* ÁREA DE PREDIÇÃO */
-    .prediction-area {
-        text-align: center;
-        margin-top: 15px;
-        border-top: 2px dashed #ccc;
-        padding-top: 15px;
-        width: 100%;
-    }
-
-    .prediction-label {
-        font-size: 1rem;
-        color: #888;
-        margin-bottom: 5px;
-    }
-
-    .prediction {
-        font-size: 2.2rem;
-        color: #d63384; 
-        font-weight: bold;
-        min-height: 50px;
-    }
-
-    /* BOTÕES */
-    .actions {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
-        margin-top: 10px;
-    }
-
-    wired-button {
-        width: auto !important;
-        min-width: 200px; 
-        font-size: 1.3rem;
-        color: #333;
-        font-weight: bold;
-        background: transparent !important;
-    }
-
-    /* Cor interna do botão */
-    wired-button.primary {
-        --wired-button-bg-color: #2ba2da; 
-    }
-
-    /* Botão de Próxima Palavra */
-    wired-button#next-word-btn {
-        --wired-button-bg-color: #bbf7d0;
-        display: none;
-    }
-
-    /* OVERLAY DA MÃO */
-    .video-container {
-        position: relative;
-    }
+    canvas { display: none; }
 
     .hand-overlay {
         position: absolute;
-        top: 0;
-        left: 0;
+        inset: 0;
         width: 100%;
         height: 100%;
         object-fit: contain;
-        opacity: 0.4;
+        opacity: 0.44;
         pointer-events: none;
+        transform: scaleX(-1);
         display: none;
-        transform: scaleX(-1); 
-        z-index: 10;
+        z-index: 3;
     }
 
-    /* Botão de ajuda pequeno no canto do vídeo */
-    .help-wrapper {
+    .camera-tools {
         position: absolute;
         top: 10px;
         right: 10px;
-        z-index: 20;
-    }
-    
-    wired-icon-button {
-        background: white;
-        color: #41403e;
-        --wired-icon-size: 24px;
+        display: flex;
+        gap: 8px;
+        z-index: 5;
     }
 
-    /* RODAPÉ */
+    .icon-btn {
+        width: 44px;
+        height: 42px;
+        padding: 0;
+        border: 2px solid var(--line);
+        background: #fff;
+        border-radius: 6px;
+        font-weight: 900;
+        cursor: pointer;
+    }
+
+    .status-strip {
+        display: flex;
+        justify-content: flex-start;
+        gap: 12px;
+        padding-top: 12px;
+        color: #555;
+        font-size: 0.95rem;
+    }
+
+    .side-panel { padding: 18px; }
+
+    .panel-title {
+        margin: 0 0 10px;
+        font-size: 1.5rem;
+        line-height: 1.1;
+    }
+
+    .instruction {
+        min-height: 58px;
+        margin: 0 0 16px;
+        font-size: 1.22rem;
+        line-height: 1.32;
+    }
+
+    .letters-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        min-height: 70px;
+        align-items: center;
+        justify-content: center;
+        margin: 14px 0;
+    }
+
+    .letter-box {
+        width: 48px;
+        height: 56px;
+        display: grid;
+        place-items: center;
+        border: 2px solid var(--line);
+        border-radius: 6px;
+        background: #fff;
+        font-size: 1.75rem;
+        font-weight: 900;
+        transition: transform 0.18s ease, background 0.18s ease;
+    }
+
+    .letter-box.active {
+        color: var(--blue);
+        border-color: var(--blue);
+        background: #e7f0ff;
+        transform: scale(1.08) rotate(-2deg);
+    }
+
+    .letter-box.success {
+        color: var(--green);
+        border-color: var(--green);
+        background: #dcf5df;
+    }
+
+    .prediction-area {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        gap: 10px;
+        border-top: 2px dashed #999;
+        padding-top: 12px;
+        margin-top: 12px;
+    }
+
+    .prediction-label {
+        color: #626262;
+        font-size: 0.95rem;
+    }
+
+    .prediction {
+        min-width: 88px;
+        text-align: center;
+        font-size: 2rem;
+        font-weight: 900;
+        color: var(--rose);
+    }
+
+    .actions,
+    .free-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+    }
+
+    .options {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-top: 14px;
+        padding: 12px;
+        background: #fffaf0;
+        border: 2px dashed #777;
+        border-radius: 8px;
+    }
+
+    .switch-row,
+    .input-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .switch-row label,
+    .input-row label {
+        font-weight: 700;
+    }
+
+    .switch {
+        position: relative;
+        width: 64px;
+        height: 34px;
+        flex: 0 0 auto;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        inset: 0;
+        cursor: pointer;
+        border: 2px solid var(--line);
+        border-radius: 999px;
+        background: #fff;
+    }
+
+    .slider::before {
+        content: "";
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        left: 3px;
+        top: 3px;
+        border-radius: 50%;
+        background: var(--line);
+        transition: transform 0.18s ease, background 0.18s ease;
+    }
+
+    .switch input:checked + .slider { background: #d9f2ff; }
+    .switch input:checked + .slider::before {
+        transform: translateX(30px);
+        background: var(--blue);
+    }
+
+    .time-input {
+        width: 96px;
+        min-height: 40px;
+        padding: 7px 9px;
+        border: 2px solid var(--line);
+        border-radius: 6px;
+        background: #fff;
+        text-align: center;
+        font-weight: 700;
+    }
+
+    .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .metric {
+        border: 2px solid var(--line);
+        border-radius: 7px;
+        background: #fff;
+        padding: 8px;
+        min-height: 68px;
+    }
+
+    .metric span {
+        display: block;
+        color: #666;
+        font-size: 0.82rem;
+    }
+
+    .metric strong {
+        display: block;
+        margin-top: 4px;
+        font-size: 1.25rem;
+    }
+
+    .roadmap {
+        margin-top: 18px;
+        padding: 14px;
+    }
+
+    .roadmap-track {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(10, minmax(34px, 1fr));
+        align-items: center;
+        gap: 0;
+        min-height: 66px;
+        margin-top: 6px;
+    }
+
+    .roadmap-track::before {
+        content: "";
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        top: 50%;
+        height: 4px;
+        background: var(--line);
+        transform: translateY(-50%);
+        z-index: 0;
+    }
+
+    .roadmap-step {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        place-items: center;
+        justify-self: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 2px solid var(--line);
+        background: #8f8f8f;
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 900;
+    }
+
+    .roadmap-step.current {
+        background: var(--line);
+        transform: scale(1.08);
+    }
+
+    .roadmap-step.done {
+        background: var(--green);
+    }
+
+    .free-tools {
+        padding: 16px;
+        margin-top: 18px;
+    }
+
+    .free-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    select {
+        min-height: 42px;
+        border: 2px solid var(--line);
+        border-radius: 6px;
+        background: #fff;
+        padding: 7px 9px;
+        font-weight: 700;
+    }
+
+    .hidden { display: none !important; }
+
     footer {
-        margin-top: 60px;
         display: flex;
         justify-content: center;
-        gap: 40px;
-        margin-bottom: 20px;
+        align-items: center;
+        gap: 34px;
+        margin-top: 28px;
+        flex-wrap: wrap;
+    }
+
+    .credits {
+        flex-basis: 100%;
+        text-align: center;
+        color: #4b4b4b;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .credits a {
+        color: var(--blue);
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .credits a:hover,
+    .credits a:focus {
+        text-decoration: underline;
     }
 
     footer img {
-        height: 50px;
-        border: none !important;
-        box-shadow: none !important;
-        background: transparent;
-        transition: transform 0.3s;
+        height: 48px;
+        max-width: 190px;
+        object-fit: contain;
     }
-    
-    footer img:hover {
-        transform: scale(1.1);
+
+    @media (max-width: 860px) {
+        header { align-items: flex-start; flex-direction: column; }
+        .tabs { justify-content: flex-start; }
+        .layout { grid-template-columns: 1fr; }
+        .status-strip { flex-direction: column; }
+    }
+
+    @media (max-width: 520px) {
+        .page { width: min(100% - 20px, 1180px); padding-top: 14px; }
+        .brand img { width: 46px; height: 46px; }
+        .side-panel { padding: 14px; }
+        .free-controls, .meta-grid { grid-template-columns: 1fr; }
+        .prediction-area { grid-template-columns: 1fr; text-align: center; }
+        .draw-btn { width: 100%; }
+        .letter-box { width: 42px; height: 50px; font-size: 1.45rem; }
     }
 </style>
 </head>
 <body>
-
-<div class="main-container">
-    
+<div class="page">
     <header>
-        <h1>
-            <img src="/static/logo.png" alt="Logo" onerror="this.style.display='none'"> 
-            <span>AlphaLibras</span>
-        </h1>
-        <p style="font-size: 1.2rem;">Ensino de Libras Interativo</p>
+        <div class="brand">
+            <img src="/static/logo.png" alt="AlphaLibras" onerror="this.style.display='none'">
+            <div>
+                <h1>AlphaLibras</h1>
+                <p class="subtitle">Treino de soletração em Libras.</p>
+            </div>
+        </div>
+        <nav class="tabs" aria-label="Modos de treino">
+            <button class="draw-btn active" id="tab-challenge" type="button">Desafio</button>
+            <button class="draw-btn" id="tab-free" type="button">Modo livre</button>
+        </nav>
     </header>
 
-    <main class="app-grid">
-        
-        <div class="cam-area">
-            <div class="video-frame video-container">
+    <main class="layout">
+        <section class="video-panel" aria-label="Câmera">
+            <div class="video-wrap">
                 <video id="video" autoplay playsinline muted></video>
-                <canvas id="canvas" width="640" height="480" style="display:none"></canvas>
-                
-                <img id="hand-overlay" class="hand-overlay" src="" alt="Ajuda Libras">
-
-                <div class="help-wrapper">
-                    <wired-button id="btn-help" style="min-width: 40px; padding: 5px; font-weight:bold;">
-                        ?
-                    </wired-button>
+                <canvas id="canvas" width="640" height="480"></canvas>
+                <img id="hand-overlay" class="hand-overlay" src="" alt="Ajuda do sinal em Libras">
+                <div class="camera-tools">
+                    <button class="icon-btn" id="btn-help" type="button" title="Mostrar ajuda">?</button>
                 </div>
             </div>
-            
-            <div class="status-text" id="status">Status: Aguardando câmera...</div>
-        </div>
+            <div class="status-strip">
+                <span id="status">Câmera: aguardando permissão</span>
+            </div>
+        </section>
 
-        <div class="control-panel">
-            
-            <div class="exercise-card">
-                <div class="instruction" id="instruction">Clique em "Iniciar" para começar</div>
-                
+        <section>
+            <div class="side-panel">
+                <h2 class="panel-title" id="mode-title">Desafio de soletração</h2>
+                <p class="instruction" id="instruction">Clique em "Iniciar desafio" para sortear 10 palavras.</p>
+
                 <div class="letters-row" id="letters-row">
                     <div class="letter-box">?</div>
                 </div>
 
                 <div class="prediction-area">
-                    <div class="prediction-label">Sua mão está fazendo:</div>
+                    <div>
+                        <div class="prediction-label">Sua mão está fazendo</div>
+                        <div id="feedback">Aguardando início</div>
+                    </div>
                     <div class="prediction" id="predicted-letter">-</div>
+                </div>
+
+                <div class="meta-grid" id="challenge-metrics">
+                    <div class="metric"><span>Palavra</span><strong id="word-progress">0/10</strong></div>
+                    <div class="metric"><span>Letras</span><strong id="letter-progress">0/0</strong></div>
+                    <div class="metric"><span>Tempo</span><strong id="timer-display">infinito</strong></div>
+                </div>
+
+                <div class="options" id="challenge-options">
+                    <div class="switch-row">
+                        <label for="timer-toggle">Usar temporizador</label>
+                        <label class="switch" data-drawably-toggle>
+                            <input id="timer-toggle" type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="input-row">
+                        <label for="timer-minutes">Minutos</label>
+                        <input class="time-input" id="timer-minutes" type="number" min="1" max="120" value="5" disabled>
+                    </div>
+                </div>
+
+                <div class="actions" id="challenge-actions">
+                    <button class="draw-btn primary" id="start-challenge" type="button">Iniciar desafio</button>
+                    <button class="draw-btn success" id="next-word" type="button" disabled>Próxima palavra</button>
+                    <button class="draw-btn danger" id="stop-challenge" type="button" disabled>Encerrar</button>
+                </div>
+
+                <div class="free-tools hidden" id="free-tools">
+                    <h2 class="panel-title">Modo livre</h2>
+                    <div class="free-controls">
+                        <select id="free-letter"></select>
+                        <button class="draw-btn primary" id="train-letter" type="button">Treinar letra</button>
+                        <button class="draw-btn success" id="random-letter" type="button">Sortear letra</button>
+                        <button class="draw-btn success" id="random-word" type="button">Sortear palavra</button>
+                    </div>
                 </div>
             </div>
 
-            <div class="actions">
-                <wired-button elevation="3" class="primary" id="start-button">
-                    INICIAR EXERCÍCIO
-                </wired-button>
-                
-                <wired-button elevation="3" id="next-word-btn">
-                    Próxima Palavra &rarr;
-                </wired-button>
-            </div>
-
-        </div>
+            <aside class="roadmap" id="roadmap-panel">
+                <h2 class="panel-title">Progresso</h2>
+                <div class="roadmap-track" id="roadmap-track" aria-label="Progresso das 10 palavras"></div>
+            </aside>
+        </section>
     </main>
 
     <footer>
         <img src="/static/brasao3_horizontal_cor_300dpi.png" alt="UFC">
-        <img src="/static/logo-nuclic.png" alt="Nuclic">
+        <a href="https://nuclic.ufc.br" target="_blank" rel="noopener noreferrer">
+            <img src="/static/logo-nuclic.png" alt="Nuclic">
+        </a>
+        <p class="credits">
+            Projeto desenvolvido por Anderson Ivanildo.
+            GitHub:
+            <a href="https://github.com/AndersonIvanildo" target="_blank" rel="noopener noreferrer">AndersonIvanildo</a>
+            | LinkedIn:
+            <a href="https://www.linkedin.com/in/andersonivanildo" target="_blank" rel="noopener noreferrer">andersonivanildo</a>
+            | Nuclic:
+            <a href="https://nuclic.ufc.br" target="_blank" rel="noopener noreferrer">nuclic.ufc.br</a>
+            | Interface gráfica com
+            <a href="https://www.drawably.dev/" target="_blank" rel="noopener noreferrer">Drawably</a>,
+            de
+            <a href="https://github.com/Danilaa1" target="_blank" rel="noopener noreferrer">Daniel White</a>.
+        </p>
     </footer>
 </div>
 
-<script>
-// CONFIGURAÇÃO
-const isHttps = window.location.protocol === 'https:';
-const wsProtocol = isHttps ? 'wss://' : 'ws://';
-const host = window.location.host; 
+<script type="module">
+const isHttps = window.location.protocol === "https:";
+const wsProtocol = isHttps ? "wss://" : "ws://";
+const host = window.location.host;
 const wsUrl = `${wsProtocol}${host}/api/v1/classify/ws`;
-const wordUrl = `${window.location.origin}/api/v1/exercicios/soletracao`;
+const apiBase = `${window.location.origin}/api/v1`;
 
-let currentWord = "";
-let letters = [];
-let currentIndex = 0;
-let isLetterSolved = false;
-let ws = null;
-let frameInterval = null;
+const state = {
+    mode: "challenge",
+    supportedLetters: [],
+    roadmap: [],
+    wordIndex: 0,
+    currentWord: "",
+    letters: [],
+    letterIndex: 0,
+    isLetterSolved: false,
+    ws: null,
+    frameInterval: null,
+    timerInterval: null,
+    endsAt: null,
+    active: false,
+    helpVisible: false
+};
 
-// ELEMENTOS DO DOM
-const video = document.getElementById("video");
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-const instructionEl = document.getElementById("instruction");
-const lettersRow = document.getElementById("letters-row");
-const predictedLetterEl = document.getElementById("predicted-letter");
-const startButton = document.getElementById("start-button");
-const nextWordBtn = document.getElementById("next-word-btn");
-const statusEl = document.getElementById("status");
+const el = {
+    video: document.getElementById("video"),
+    canvas: document.getElementById("canvas"),
+    instruction: document.getElementById("instruction"),
+    lettersRow: document.getElementById("letters-row"),
+    predicted: document.getElementById("predicted-letter"),
+    feedback: document.getElementById("feedback"),
+    status: document.getElementById("status"),
+    overlay: document.getElementById("hand-overlay"),
+    help: document.getElementById("btn-help"),
+    tabChallenge: document.getElementById("tab-challenge"),
+    tabFree: document.getElementById("tab-free"),
+    modeTitle: document.getElementById("mode-title"),
+    metrics: document.getElementById("challenge-metrics"),
+    options: document.getElementById("challenge-options"),
+    challengeActions: document.getElementById("challenge-actions"),
+    freeTools: document.getElementById("free-tools"),
+    roadmapPanel: document.getElementById("roadmap-panel"),
+    roadmapTrack: document.getElementById("roadmap-track"),
+    wordProgress: document.getElementById("word-progress"),
+    letterProgress: document.getElementById("letter-progress"),
+    timerDisplay: document.getElementById("timer-display"),
+    timerToggle: document.getElementById("timer-toggle"),
+    timerMinutes: document.getElementById("timer-minutes"),
+    startChallenge: document.getElementById("start-challenge"),
+    nextWord: document.getElementById("next-word"),
+    stopChallenge: document.getElementById("stop-challenge"),
+    freeLetter: document.getElementById("free-letter"),
+    trainLetter: document.getElementById("train-letter"),
+    randomLetter: document.getElementById("random-letter"),
+    randomWord: document.getElementById("random-word")
+};
 
-// Novos elementos para Ajuda
-const handOverlay = document.getElementById("hand-overlay");
-const btnHelp = document.getElementById("btn-help");
-let isHelpVisible = false;
+const ctx = el.canvas.getContext("2d");
 
-// FUNÇÕES DE AJUDA
-
-// Atualiza a imagem com base na letra atual
-function updateOverlayImage() {
-    const letter = letters[currentIndex];
-    if (!letter) return;
-    
-    handOverlay.src = `/static/maos/${letter.toLowerCase()}.png`;
-}
-
-// Liga/Desliga a visualização da ajuda
-function toggleHelp() {
-    isHelpVisible = !isHelpVisible;
-    if (isHelpVisible) {
-        handOverlay.style.display = "block";
-        btnHelp.textContent = "X";
-    } else {
-        handOverlay.style.display = "none";
-        btnHelp.textContent = "?";
+async function applyDrawably() {
+    try {
+        const mod = await import("https://esm.unpkg.com/drawably@0.3.10");
+        const drawButton = mod.default || mod.drawablyButton;
+        const drawInput = mod.drawablyInput;
+        const drawCard = mod.drawablyCard;
+        const drawToggle = mod.drawablyToggle;
+        document.querySelectorAll("button").forEach((button) => drawButton?.(button));
+        document.querySelectorAll(".side-panel,.video-panel,.roadmap,.free-tools,.metric,.letter-box").forEach((card) => drawCard?.(card));
+        document.querySelectorAll("input").forEach((input) => drawInput?.(input));
+        document.querySelectorAll("[data-drawably-toggle]").forEach((toggle) => drawToggle?.(toggle));
+    } catch (error) {
+        console.warn("Drawably indisponível; usando estilos locais.", error);
     }
 }
 
-// Ouvinte do botão de ajuda
-btnHelp.addEventListener("click", toggleHelp);
+async function loadSupportedLetters() {
+    try {
+        const response = await fetch(`${apiBase}/exercicios/letras`);
+        const data = await response.json();
+        state.supportedLetters = data.letras || [];
+    } catch {
+        state.supportedLetters = ["A", "B", "C", "D", "E", "F", "G", "I", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "Y"];
+    }
 
-
-// LÓGICA DO JOGO E CÂMERA
+    el.freeLetter.innerHTML = state.supportedLetters
+        .map((letter) => `<option value="${letter}">${letter}</option>`)
+        .join("");
+}
 
 async function startCamera() {
     try {
-        statusEl.textContent = "Solicitando câmera...";
+        el.status.textContent = "Câmera: solicitando permissão";
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        video.srcObject = stream;
-        video.onloadedmetadata = () => {
-            video.play();
-            statusEl.textContent = "Câmera ativa";
+        el.video.srcObject = stream;
+        el.video.onloadedmetadata = () => {
+            el.video.play();
+            el.status.textContent = "Câmera: ativa";
         };
-    } catch (err) {
-        console.error("Erro Câmera:", err);
-        statusEl.textContent = "Erro: Câmera bloqueada.";
-        instructionEl.textContent = "Permita o uso da câmera.";
+    } catch (error) {
+        console.error(error);
+        el.status.textContent = "Câmera: bloqueada";
+        el.instruction.textContent = "Permita o uso da câmera para validar os sinais.";
+    }
+}
+
+function setMode(mode) {
+    state.mode = mode;
+    const free = mode === "free";
+    el.tabChallenge.classList.toggle("active", !free);
+    el.tabFree.classList.toggle("active", free);
+    el.modeTitle.textContent = free ? "Treino livre" : "Desafio de soletração";
+    el.options.classList.toggle("hidden", free);
+    el.challengeActions.classList.toggle("hidden", free);
+    el.metrics.classList.toggle("hidden", free);
+    el.roadmapPanel.classList.toggle("hidden", free);
+    el.freeTools.classList.toggle("hidden", !free);
+    resetCurrentTarget();
+    stopTimer();
+    state.active = false;
+
+    if (free) {
+        el.instruction.textContent = "Escolha uma letra ou sorteie uma palavra para treinar no seu ritmo.";
+        el.feedback.textContent = "Modo livre pronto";
+        el.wordProgress.textContent = "0/10";
+    } else {
+        el.instruction.textContent = "Clique em \"Iniciar desafio\" para sortear 10 palavras.";
+        el.feedback.textContent = "Aguardando início";
     }
 }
 
 function renderLetters(word) {
-    lettersRow.innerHTML = "";
-    letters = Array.from(word);
-    letters.forEach((l, i) => {
+    el.lettersRow.innerHTML = "";
+    state.letters = Array.from(word);
+    state.letters.forEach((letter, index) => {
         const box = document.createElement("div");
         box.className = "letter-box";
-        box.dataset.index = i;
-        box.textContent = l;
-        lettersRow.appendChild(box);
+        box.dataset.index = String(index);
+        box.textContent = letter;
+        el.lettersRow.appendChild(box);
     });
-    highlightCurrent();
+    highlightCurrentLetter();
+    updateLetterProgress();
 }
 
-function highlightCurrent() {
-    document.querySelectorAll(".letter-box").forEach(el => el.classList.remove("active"));
-    const cur = document.querySelector(`.letter-box[data-index="${currentIndex}"]`);
-    if (cur) cur.classList.add("active");
+function highlightCurrentLetter() {
+    document.querySelectorAll(".letter-box").forEach((box) => box.classList.remove("active"));
+    const current = document.querySelector(`.letter-box[data-index="${state.letterIndex}"]`);
+    current?.classList.add("active");
 }
 
-function markSuccess(index) {
-    const el = document.querySelector(`.letter-box[data-index="${index}"]`);
-    if (el) {
-        el.classList.remove("active");
-        el.classList.add("success");
+function markLetterSuccess(index) {
+    const current = document.querySelector(`.letter-box[data-index="${index}"]`);
+    current?.classList.remove("active");
+    current?.classList.add("success");
+}
+
+function renderRoadmap() {
+    el.roadmapTrack.innerHTML = "";
+    const total = state.roadmap.length || 10;
+    Array.from({ length: total }).forEach((_, index) => {
+        const step = document.createElement("div");
+        step.className = "roadmap-step";
+        step.classList.toggle("current", state.active && index === state.wordIndex);
+        step.classList.toggle("done", index < state.wordIndex && state.roadmap.length > 0);
+        step.textContent = String(index + 1).padStart(2, "0");
+        step.setAttribute("aria-label", `Palavra ${index + 1}`);
+        el.roadmapTrack.appendChild(step);
+    });
+    el.wordProgress.textContent = `${state.roadmap.length ? Math.min(state.wordIndex + 1, state.roadmap.length) : 0}/${total}`;
+}
+
+function updateLetterProgress() {
+    el.letterProgress.textContent = `${Math.min(state.letterIndex + 1, state.letters.length || 0)}/${state.letters.length || 0}`;
+}
+
+function updateOverlayImage() {
+    const letter = state.letters[state.letterIndex];
+    if (!letter) return;
+    el.overlay.src = `/static/maos/${letter.toLowerCase()}.png`;
+}
+
+function hideHelp() {
+    state.helpVisible = false;
+    el.overlay.style.display = "none";
+    el.help.textContent = "?";
+    el.help.title = "Mostrar ajuda";
+}
+
+function toggleHelp() {
+    state.helpVisible = !state.helpVisible;
+    el.overlay.style.display = state.helpVisible ? "block" : "none";
+    el.help.textContent = state.helpVisible ? "x" : "?";
+    el.help.title = state.helpVisible ? "Ocultar ajuda" : "Mostrar ajuda";
+}
+
+function resetCurrentTarget() {
+    stopWS();
+    hideHelp();
+    state.currentWord = "";
+    state.letters = [];
+    state.letterIndex = 0;
+    state.isLetterSolved = false;
+    el.lettersRow.innerHTML = '<div class="letter-box">?</div>';
+    el.predicted.textContent = "-";
+    el.nextWord.disabled = true;
+}
+
+function startTarget(word, message) {
+    state.currentWord = word.toUpperCase();
+    state.letterIndex = 0;
+    state.isLetterSolved = false;
+    el.predicted.textContent = "-";
+    el.feedback.textContent = "Aguardando sinal";
+    renderLetters(state.currentWord);
+    el.instruction.textContent = message || `Faça o sinal da letra "${state.letters[0]}"`;
+    hideHelp();
+    updateOverlayImage();
+    connectWS();
+}
+
+async function startChallenge() {
+    resetCurrentTarget();
+    el.startChallenge.disabled = true;
+    el.stopChallenge.disabled = false;
+    el.instruction.textContent = "Sorteando desafio...";
+
+    try {
+        const response = await fetch(`${apiBase}/exercicios/roadmap?quantidade=10`);
+        if (!response.ok) throw new Error("Falha ao sortear desafio");
+        const data = await response.json();
+        state.roadmap = data.palavras || [];
+    } catch (error) {
+        console.error(error);
+        state.roadmap = ["LIBRAS", "AMOR", "CASA", "BOLA", "VIDA", "SOL", "PATO", "MESA", "UVA", "ROSA"];
     }
+
+    state.wordIndex = 0;
+    state.active = true;
+    renderRoadmap();
+    startTimer();
+    startTarget(state.roadmap[0], `Palavra 1: faça o sinal da letra "${state.roadmap[0][0]}"`);
+    el.startChallenge.textContent = "Reiniciar desafio";
+    el.startChallenge.disabled = false;
+}
+
+function finishWord() {
+    stopWS();
+    hideHelp();
+    el.predicted.textContent = "ok";
+    el.feedback.textContent = "Palavra concluída";
+
+    if (state.mode === "challenge") {
+        const finalWord = state.wordIndex >= state.roadmap.length - 1;
+        el.nextWord.disabled = finalWord;
+        if (finalWord) {
+            state.active = false;
+            stopTimer();
+            el.instruction.textContent = "Desafio concluído.";
+            el.stopChallenge.disabled = true;
+            state.wordIndex = state.roadmap.length;
+            renderRoadmap();
+        } else {
+            el.instruction.textContent = "Palavra concluída. Avance quando estiver pronto.";
+        }
+    } else {
+        el.instruction.textContent = "Treino concluído. Escolha o próximo alvo.";
+    }
+}
+
+function goToNextWord() {
+    if (state.wordIndex >= state.roadmap.length - 1) return;
+    state.wordIndex += 1;
+    renderRoadmap();
+    const word = state.roadmap[state.wordIndex];
+    el.nextWord.disabled = true;
+    startTarget(word, `Palavra ${state.wordIndex + 1}: faça o sinal da letra "${word[0]}"`);
 }
 
 function nextLetter() {
-    currentIndex++;
-    isLetterSolved = false;
-    
-    // Seleciona a label para alterar o texto
-    const labelEl = document.querySelector(".prediction-label");
+    state.letterIndex += 1;
+    state.isLetterSolved = false;
 
-    if (currentIndex >= letters.length) {
-        instructionEl.textContent = `Parabéns! "${currentWord}" concluída.`;
-        predictedLetterEl.textContent = "Concluído";
-        
-        // Troca a mensagem "Sua mão..." por instrução de avançar
-        if(labelEl) labelEl.textContent = "Clique abaixo para continuar:";
-        
-        nextWordBtn.style.display = "inline-block";
-        
-        // Garante que a ajuda suma no final
-        handOverlay.style.display = "none";
-        isHelpVisible = false;
-        btnHelp.textContent = "?";
-        
-        stopWS();
+    if (state.letterIndex >= state.letters.length) {
+        finishWord();
         return;
     }
-    
-    highlightCurrent();
-    instructionEl.textContent = `Faça o sinal da letra "${letters[currentIndex]}"`;
-    
-    // RESET DA AJUDA (Esconde a ajuda ao passar para a próxima letra)
-    isHelpVisible = false; 
-    handOverlay.style.display = "none";
-    btnHelp.textContent = "?";
-    
-    // Atualiza a imagem
+
+    highlightCurrentLetter();
+    updateLetterProgress();
+    hideHelp();
     updateOverlayImage();
+    el.feedback.textContent = "Próxima letra";
+    el.instruction.textContent = `Faça o sinal da letra "${state.letters[state.letterIndex]}"`;
 }
 
-function stopWS() {
-    if (ws) {
-        ws.onclose = null; 
-        ws.close();
-        ws = null;
-    }
-    clearInterval(frameInterval);
-}
-
-function handlePrediction(predLetter, confidence) {
-    if (!predLetter) {
-        predictedLetterEl.textContent = "...";
+function handlePrediction(letter) {
+    if (!letter) {
+        el.predicted.textContent = "...";
         return;
     }
-    
-    predictedLetterEl.textContent = predLetter;
 
-    const target = letters[currentIndex];
-    if (!target || isLetterSolved) return;
+    const normalized = letter.toUpperCase();
+    el.predicted.textContent = normalized;
+    const target = state.letters[state.letterIndex];
+    if (!target || state.isLetterSolved) return;
 
-    if (predLetter.toUpperCase() === target.toUpperCase()) {
-        isLetterSolved = true;
-        markSuccess(currentIndex);
-        predictedLetterEl.textContent = `${predLetter} (Correto!)`;
-        predictedLetterEl.style.color = "#2e7d32"; 
-        
-        setTimeout(() => {
-            predictedLetterEl.style.color = "#d63384"; 
-            nextLetter();
-        }, 800);
+    if (normalized === target.toUpperCase()) {
+        state.isLetterSolved = true;
+        markLetterSuccess(state.letterIndex);
+        el.predicted.textContent = `${normalized}`;
+        el.feedback.textContent = "Correto";
+        setTimeout(nextLetter, 650);
     }
 }
 
 function connectWS() {
-    if (ws) ws.close();
-    clearInterval(frameInterval);
-
+    stopWS();
     try {
-        ws = new WebSocket(wsUrl);
-        
-        ws.onopen = () => {
-            frameInterval = setInterval(sendFrame, 200); 
+        state.ws = new WebSocket(wsUrl);
+        state.ws.onopen = () => {
+            state.frameInterval = setInterval(sendFrame, 200);
         };
-        
-        ws.onmessage = e => {
+        state.ws.onmessage = (event) => {
             try {
-                const data = JSON.parse(e.data);
-                handlePrediction(data.letra, data.confianca);
-            } catch (err) {}
+                const data = JSON.parse(event.data);
+                handlePrediction(data.letra);
+            } catch (error) {
+                console.warn(error);
+            }
         };
-
-        ws.onclose = () => clearInterval(frameInterval);
-        ws.onerror = () => clearInterval(frameInterval);
-    } catch (e) {
-        console.error("Erro WebSocket", e);
+        state.ws.onclose = () => clearInterval(state.frameInterval);
+        state.ws.onerror = () => clearInterval(state.frameInterval);
+    } catch (error) {
+        console.error(error);
     }
+}
+
+function stopWS() {
+    if (state.ws) {
+        state.ws.onclose = null;
+        state.ws.close();
+        state.ws = null;
+    }
+    clearInterval(state.frameInterval);
+    state.frameInterval = null;
 }
 
 function sendFrame() {
-    // Evita erro no backend checando conexão
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    if (video.readyState < 2) return; 
-
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const frame = canvas.toDataURL("image/jpeg", 0.5); 
-    ws.send(frame);
+    if (!state.ws || state.ws.readyState !== WebSocket.OPEN) return;
+    if (el.video.readyState < 2) return;
+    ctx.drawImage(el.video, 0, 0, el.canvas.width, el.canvas.height);
+    state.ws.send(el.canvas.toDataURL("image/jpeg", 0.5));
 }
 
-window.onbeforeunload = function() {
-    stopWS();
-};
+function startTimer() {
+    stopTimer();
+    if (!el.timerToggle.checked) {
+        el.timerDisplay.textContent = "infinito";
+        return;
+    }
 
-async function fetchNewWord() {
-    instructionEl.textContent = "Sorteando...";
-    startButton.style.opacity = "0.5";
-    nextWordBtn.style.display = "none";
-    predictedLetterEl.textContent = "-";
+    const minutes = Math.max(1, Number.parseInt(el.timerMinutes.value || "5", 10));
+    state.endsAt = Date.now() + minutes * 60 * 1000;
+    tickTimer();
+    state.timerInterval = setInterval(tickTimer, 1000);
+}
 
-    // Restaura o texto original da label ao iniciar novo jogo
-    const labelEl = document.querySelector(".prediction-label");
-    if(labelEl) labelEl.textContent = "Sua mão está fazendo:";
-    
-    try {
-        const response = await fetch(wordUrl);
-        if (!response.ok) throw new Error("API Error");
-        
-        const data = await response.json();
-        currentWord = data.palavra.toUpperCase();
-        
-        currentIndex = 0;
-        isLetterSolved = false;
-        renderLetters(currentWord);
-        instructionEl.textContent = `Faça o sinal da letra "${letters[0]}"`;
-        
-        isHelpVisible = false;
-        handOverlay.style.display = "none";
-        btnHelp.textContent = "?";
-        
-        updateOverlayImage();
-        connectWS();
+function stopTimer() {
+    clearInterval(state.timerInterval);
+    state.timerInterval = null;
+    state.endsAt = null;
+    el.timerDisplay.textContent = "infinito";
+}
 
-    } catch (error) {
-        console.error(error);
-        instructionEl.textContent = "Modo Teste (LIBRAS)";
-        currentWord = "LIBRAS";
-        renderLetters(currentWord);
-        updateOverlayImage();
-        connectWS();
-    } finally {
-        startButton.style.opacity = "1";
-        startButton.textContent = "REINICIAR";
+function tickTimer() {
+    if (!state.endsAt) return;
+    const remaining = Math.max(0, state.endsAt - Date.now());
+    const minutes = Math.floor(remaining / 60000);
+    const seconds = Math.floor((remaining % 60000) / 1000);
+    el.timerDisplay.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+
+    if (remaining <= 0) {
+        endChallenge("Tempo encerrado.");
     }
 }
 
-startButton.addEventListener("click", fetchNewWord);
-nextWordBtn.addEventListener("click", fetchNewWord);
+function endChallenge(message = "Desafio encerrado.") {
+    state.active = false;
+    stopTimer();
+    stopWS();
+    hideHelp();
+    el.stopChallenge.disabled = true;
+    el.nextWord.disabled = true;
+    el.instruction.textContent = message;
+    el.feedback.textContent = "Pronto para reiniciar";
+    renderRoadmap();
+}
 
+function pickRandomLetter() {
+    const letters = state.supportedLetters.length ? state.supportedLetters : ["A"];
+    return letters[Math.floor(Math.random() * letters.length)];
+}
+
+async function startRandomWordFree() {
+    try {
+        const response = await fetch(`${apiBase}/exercicios/soletracao`);
+        const data = await response.json();
+        startTarget(data.palavra, `Modo livre: faça o sinal da letra "${data.palavra[0]}"`);
+    } catch {
+        startTarget("LIBRAS", 'Modo livre: faça o sinal da letra "L"');
+    }
+}
+
+el.timerToggle.addEventListener("change", () => {
+    el.timerMinutes.disabled = !el.timerToggle.checked;
+    if (!state.active) {
+        el.timerDisplay.textContent = el.timerToggle.checked ? `${el.timerMinutes.value} min` : "infinito";
+    } else {
+        startTimer();
+    }
+});
+el.timerMinutes.addEventListener("input", () => {
+    if (state.active && el.timerToggle.checked) startTimer();
+});
+el.startChallenge.addEventListener("click", startChallenge);
+el.nextWord.addEventListener("click", goToNextWord);
+el.stopChallenge.addEventListener("click", () => endChallenge());
+el.help.addEventListener("click", toggleHelp);
+el.tabChallenge.addEventListener("click", () => setMode("challenge"));
+el.tabFree.addEventListener("click", () => setMode("free"));
+el.trainLetter.addEventListener("click", () => startTarget(el.freeLetter.value, `Modo livre: faça o sinal da letra "${el.freeLetter.value}"`));
+el.randomLetter.addEventListener("click", () => {
+    const letter = pickRandomLetter();
+    el.freeLetter.value = letter;
+    startTarget(letter, `Modo livre: faça o sinal da letra "${letter}"`);
+});
+el.randomWord.addEventListener("click", startRandomWordFree);
+window.addEventListener("beforeunload", () => {
+    stopWS();
+    stopTimer();
+});
+
+applyDrawably();
+loadSupportedLetters();
+renderRoadmap();
 startCamera();
-
 </script>
 </body>
 </html>
